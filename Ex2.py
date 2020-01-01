@@ -72,7 +72,7 @@ class GP(object):
         self.toolbox.register("population", tools.initRepeat, list, self.toolbox.individual)
         self.toolbox.register("compile", gp.compile, pset=self.pset)
 
-        self.toolbox.register("evaluate", self.eval_symb_reg, problems=self.generate_problems(self.numProblems))
+        self.toolbox.register("evaluate", self.eval_all_boards, problems=self.generate_problems(self.numProblems))
         self.toolbox.register("select", tools.selTournament, tournsize=3)
         self.toolbox.register("mate", gp.cxOnePointLeafBiased, 0.1)  # TODO maybe error
         self.toolbox.register("expr_mut", gp.genFull, min_=0, max_=2)
@@ -88,18 +88,32 @@ class GP(object):
         return ret
 
     @staticmethod
-    def eval_solution(solution):
-        penalty = 0
-        for i in range(len(solution)):
-            for j in range(i + 1, len(solution)):
-                if solution[i] == solution[j] or abs(i - j) == abs(solution[i] - solution[j]):
-                    penalty += 1
-        return 1 / (penalty + 1)  # divide by 0?
+    def eval_board(agent):
+        score = 2 * agent.board.num_revealed_cells()
+        if agent.board.lost_game():
+            score -= 1
 
-    def eval_symb_reg(self, individual, problems):
+        return score
+
+    @staticmethod
+    def max_fitness_for_board(board_game):
+        return len(board_game.grid) * len(board_game.grid[0]) - board_game.bombs
+
+    def eval_all_boards(self, individual, problems):
         func = self.toolbox.compile(expr=individual)
-        solutions = [func(problem) for problem in problems]
-        return sum([self.eval_solution(sol) for sol in solutions]),
+        solutions_boards = [func(problem) for problem in problems]
+        total_fitness = 0  # sum of all solutions' fitness
+        max_fitness = 0
+        non_dumbs = 0
+        for sol in solutions_boards:
+            curr_fitness = self.eval_board(sol)
+            total_fitness += curr_fitness
+            if curr_fitness != 0:
+                max_fitness += GP.max_fitness_for_board(sol)
+            else:
+                non_dumbs += 1
+        std_score = max_fitness - total_fitness
+        return 1 / (1 + std_score)
 
     def plot(self, name):
         gens = range(self.gens + 1)

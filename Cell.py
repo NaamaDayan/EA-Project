@@ -17,5 +17,8 @@ class Cell(object):
     def unmark(self):
         self.marked = False
 
+    def is_marked(self):
+        return self.marked
+
     def is_bomb(self):
         return self.bomb == 1
