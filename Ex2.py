@@ -55,18 +55,17 @@ class Board(object):
         # TODO
         self.grid[i][j].reveal()
 
-    def loc_in_grid(self, row, column):
-        return (0, 0) <= (row, column) < (len(self.grid), len(self.grid[0]))
-
+    def in_grid(self, row, column):
+        return 0 <= row < (len(self.grid)) and 0 <= column < (len(self.grid[0]))
 
     def expand_cells(self, row, column):
         for i in range(row - 1, row + 2):
             for j in range(column - 1, column + 2):
-                if self.loc_in_grid(row, column):  # i,j in board limits
+                if self.in_grid(i, j):  # i,j in board limits
                     neighbor = self.grid[i][j]
                     if not neighbor.is_revealed():
                         neighbor.reveal()
-                        if neighbor.has_neighbors():
+                        if self.num_bombs(i, j):
                             pass
                         else:
                             self.expand_cells(i, j)
@@ -87,12 +86,20 @@ class Board(object):
                     counter += 1
         return counter
 
-    def in_grid(self, x, y):
-        if x < 0 or y < 0:
-            return False
-        if x >= self.n or y >= self.n:
-            return False
-        return True
+    def print_board(self):
+        for i in range(len(self.grid)):
+            for j in range(len(self.grid[i])):
+                print(int(self.grid[i][j].is_bomb()), end=" ")
+            print()
+
+    def print_revealed(self):
+        for i in range(len(self.grid)):
+            for j in range(len(self.grid[i])):
+                if not self.grid[i][j].is_revealed():
+                    print("@", end=" ")
+                else:
+                    print(self.num_bombs(i, j), end=" ")
+            print()
 
 
 class Agent(object):
@@ -221,6 +228,7 @@ class GP(object):
 
 if __name__ == "__main__":
     board = Board(5, 2)
-    print (board.grid)
-    board.expand_cells(2,2)
-    print ("H")
+    board.print_board()
+    board.expand_cells(3, 2)
+    print()
+    board.print_revealed()
