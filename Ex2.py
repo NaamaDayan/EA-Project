@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import operator
 import random
-import numpy
+import numpy as np
 from deap import algorithms
 from deap import base
 from deap import creator
@@ -9,7 +9,75 @@ from deap import tools
 from deap import gp
 
 
-class GP:
+class Cell(object):
+    def __init__(self, bomb):
+        self.revealed = False
+        self.marked = False
+        self.bomb = bomb
+
+    def reveal(self):
+        self.revealed = True
+
+    def mark(self):
+        self.marked = True
+
+    def unmark(self):
+        self.marked = False
+
+
+class Board(object):
+    def __init__(self, n, bombs):
+        self.grid = self.init_grid(n, bombs)
+
+    @staticmethod
+    def init_grid(n, bombs):
+        ratio = bombs * 1.0 / (n * n)
+        x = np.random.choice([0, 1], size=(n, n), p=[1 - ratio, ratio])
+        ret = []
+        for i in range(n):
+            row = []
+            for j in range(n):
+                row.append(Cell(x[i][j]))
+            ret.append(row)
+        return ret
+
+    def reveal(self, i, j):
+        # TODO
+        self.grid[i][j].reveal()
+
+    def mark(self, i, j):
+        self.grid[i][j].mark()
+
+    def unmark(self, i, j):
+        self.grid[i][j].unmark()
+
+    def num_bombs(self, i, j):
+        pass
+
+
+class Agent(object):
+    def __init__(self, n, bombs):
+        self.location = (0, 0)
+        self.board = Board(n, bombs)
+
+    def move(self, direction):
+        self.location += direction
+
+
+class Constants(object):
+    directions = {
+        0: (0, -1),  # 'left': 0,
+        1: (-1, -1),  # 'left_up': 1,
+        2: (-1, 0),  # 'up': 2,
+        3: (-1, 1),  # 'right_up': 3,
+        4: (0, 1),  # 'right': 4,
+        5: (1, 1),  # 'right_down': 5,
+        6: (1, 0),  # 'down': 7,
+        7: (1, -1)  # 'left_down': 8
+    }
+
+
+class GP(object):
     def __init__(self, gens, pop_size, num_problems, tree_max_height, cross_over_p, mutate_p):
         self.pset = None
         self.toolbox = None
@@ -20,75 +88,11 @@ class GP:
         self.crossOverP = cross_over_p
         self.mutateP = mutate_p
 
-    @staticmethod
-    def mod_6_n(arr):
-        return len(arr) % 6 != 2 and len(arr) % 6 != 3
-
-    @staticmethod
-    def mod_6_n_2(arr):
-        return len(arr) % 6 == 2
-
-    @staticmethod
-    def sort_left_half(arr):
-        return sorted(arr[:int(len(arr) / 2)]) + arr[int(len(arr) / 2):]
-
-    @staticmethod
-    def sort_right_half(arr):
-        return arr[:int(len(arr) / 2)] + sorted(arr[int(len(arr) / 2):])
-
-    @staticmethod
-    def sort_even_odd(arr):
-        return list(filter(lambda x: x % 2 == 0, arr)) + list(filter(lambda x: x % 2 == 1, arr))
-
-    @staticmethod
-    def swap_1_3(arr):
-        place_1 = arr.index(1)
-        place_3 = arr.index(3)
-        arr[place_1], arr[place_3] = arr[place_3], arr[place_1]
-        return arr
-
-    @staticmethod
-    def move_5_end(arr):
-        return [x for x in arr if x != 5] + [5]
-
-    @staticmethod
-    def move_2_end_even(arr):
-        new_arr = [2] + [n for n in arr if n != 2]
-        left_half = new_arr[:int(len(arr) / 2)]
-        return [n for n in left_half if n != 2] + [2] + new_arr[int(len(arr) / 2):]
-
-    @staticmethod
-    def move_1_3_end(arr):
-        arr.remove(1)
-        arr.remove(3)
-        arr += [1, 3]
-        return arr
-
-    @staticmethod
-    def if_then_else(input1, output1, output2):
-        return output1 if input1 else output2
-
-    @staticmethod
-    def get_m_problems_n_queens(m):
-        all_permutations = []
-        n_range = range(6, 12)
-        for n_queens in n_range:
-            perms = [list(numpy.random.permutation(list(range(1, n_queens+1)))) for i in range(m)]
-            all_permutations += perms
-        return all_permutations
-
     def init_vars(self):
         self.pset = gp.PrimitiveSetTyped("MAIN", [list], list)
         self.pset.addPrimitive(self.if_then_else, [bool, list, list], list)
-        self.pset.addPrimitive(self.sort_left_half, [list], list)
-        self.pset.addPrimitive(self.sort_right_half, [list], list)
-        self.pset.addPrimitive(self.sort_even_odd, [list], list)
-        self.pset.addPrimitive(self.swap_1_3, [list], list)
-        self.pset.addPrimitive(self.move_1_3_end, [list], list)
-        self.pset.addPrimitive(self.move_2_end_even, [list], list)
-        self.pset.addPrimitive(self.move_5_end, [list], list)
-        self.pset.addPrimitive(self.mod_6_n, [list], bool)
-        self.pset.addPrimitive(self.mod_6_n_2, [list], bool)
+        for _, val in Constants.directions:
+            self.pset.addTerminal(val, int)
         self.pset.addTerminal(True, bool)
         self.pset.addTerminal(False, bool)
         self.pset.renameArguments(ARG0="arr")
@@ -97,7 +101,7 @@ class GP:
         creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMin)
 
         self.toolbox = base.Toolbox()
-        self.toolbox.register("expr", gp.genHalfAndHalf, pset=self.pset, min_=2, max_= self.treeMaxHeight)
+        self.toolbox.register("expr", gp.genHalfAndHalf, pset=self.pset, min_=2, max_=self.treeMaxHeight)
         self.toolbox.register("individual", tools.initIterate, creator.Individual, self.toolbox.expr)
         self.toolbox.register("population", tools.initRepeat, list, self.toolbox.individual)
         self.toolbox.register("compile", gp.compile, pset=self.pset)
@@ -115,10 +119,10 @@ class GP:
     def eval_solution(solution):
         penalty = 0
         for i in range(len(solution)):
-            for j in range(i+1, len(solution)):
+            for j in range(i + 1, len(solution)):
                 if solution[i] == solution[j] or abs(i - j) == abs(solution[i] - solution[j]):
                     penalty += 1
-        return 1 / (penalty+1)   # divide by 0?
+        return 1 / (penalty + 1)  # divide by 0?
 
     def evalSymbReg(self, individual, problems):
         func = self.toolbox.compile(expr=individual)
@@ -135,7 +139,7 @@ class GP:
         plt.xlabel("generation number")
         plt.ylabel("fitness score")
         plt.title("fitness score by generations")
-        plt.savefig(name+'.png')
+        plt.savefig(name + '.png')
         plt.show()
 
     def fit(self):
@@ -145,15 +149,16 @@ class GP:
         hof = tools.HallOfFame(1)
 
         stats_fit = tools.Statistics(lambda ind: ind.fitness.values)
-        stats_fit.register("average", numpy.mean)
-        stats_fit.register("median", numpy.median)
-        stats_fit.register("worst", numpy.min)
-        stats_fit.register("best", numpy.max)
+        stats_fit.register("average", np.mean)
+        stats_fit.register("median", np.median)
+        stats_fit.register("worst", np.min)
+        stats_fit.register("best", np.max)
 
-        self.pop, self.log = algorithms.eaSimple(pop, self.toolbox, self.crossOverP, self.mutateP, self.gens, stats=stats_fit,
-                                       halloffame=hof, verbose=True)
+        self.pop, self.log = algorithms.eaSimple(pop, self.toolbox, self.crossOverP, self.mutateP, self.gens,
+                                                 stats=stats_fit,
+                                                 halloffame=hof, verbose=True)
 
-        print(self.toolbox.compile(expr=hof[0])([1,3,2,5,4,7,6,8]))
+        print(self.toolbox.compile(expr=hof[0])([1, 3, 2, 5, 4, 7, 6, 8]))
         return self.pop, self.log, hof
 
 
