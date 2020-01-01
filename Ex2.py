@@ -1,3 +1,5 @@
+from functools import partial
+
 import matplotlib.pyplot as plt
 import operator
 import random
@@ -27,10 +29,14 @@ class Cell(object):
     def unmark(self):
         self.marked = False
 
+    def is_bomb(self):
+        return self.bomb == 1
+
 
 class Board(object):
     # n: Board = [n*n]
     def __init__(self, n, bombs):
+        self.n = n
         self.grid = self.init_grid(n, bombs)
 
     @staticmethod
@@ -72,7 +78,21 @@ class Board(object):
         self.grid[i][j].unmark()
 
     def num_bombs(self, i, j):
-        pass
+        counter = 0
+        for x in range(i - 1, i + 2):
+            for y in range(j - 1, j + 2):
+                if not self.in_grid(x, y):
+                    continue
+                if self.grid[x][y].is_bomb():
+                    counter += 1
+        return counter
+
+    def in_grid(self, x, y):
+        if x < 0 or y < 0:
+            return False
+        if x >= self.n or y >= self.n:
+            return False
+        return True
 
 
 class Agent(object):
@@ -108,13 +128,30 @@ class GP(object):
         self.crossOverP = cross_over_p
         self.mutateP = mutate_p
 
+    @staticmethod
+    def if_then_else(input1, output1, output2):
+        return output1() if input1() else output2()
+
+    @staticmethod
+    def progn(*args):
+        for arg in args:
+            arg()
+
+    @staticmethod
+    def prog2(out1, out2):
+        return partial(GP.progn, out1, out2)
+
+    @staticmethod
+    def prog3(out1, out2, out3):
+        return partial(GP.progn, out1, out2, out3)
+
     def init_vars(self):
-        self.pset = gp.PrimitiveSetTyped("MAIN", [list], list)
-        self.pset.addPrimitive(self.if_then_else, [bool, list, list], list)
+        self.pset = gp.PrimitiveSet("MAIN", 0)
+        self.pset.addPrimitive(self.if_then_else, 2)
+        self.pset.addPrimitive(self.prog2, 2)
+        self.pset.addPrimitive(self.prog3, 3)
         for _, val in Constants.directions:
             self.pset.addTerminal(val, int)
-        self.pset.addTerminal(True, bool)
-        self.pset.addTerminal(False, bool)
         self.pset.renameArguments(ARG0="arr")
 
         creator.create("FitnessMin", base.Fitness, weights=(1.0,))
