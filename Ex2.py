@@ -31,33 +31,35 @@ class Cell(object):
 
 
 class Board(object):
-    def __init__(self, n, bombs):
+    def __init__(self, n, m, bombs):
         self.n = n
-        self.grid = self.init_grid(n, bombs)
+        self.m = m
+        self.grid = self.init_grid(n, m, bombs)
 
     @staticmethod
-    def init_grid(n, bombs):
-        ratio = bombs * 1.0 / (n * n)
-        x = np.random.choice([0, 1], size=(n, n), p=[1 - ratio, ratio])
+    def init_grid(n, m, bombs):
+        ratio = bombs * 1.0 / (n * m)
+        x = np.random.choice([0, 1], size=(n, m), p=[1 - ratio, ratio])
         ret = []
         for i in range(n):
             row = []
-            for j in range(n):
+            for j in range(m):
                 row.append(Cell(x[i][j]))
             ret.append(row)
         return ret
 
-    def reveal(self, i, j):
+    def reveal(self, loc):
         # TODO
-        self.grid[i][j].reveal()
+        self.grid_at(loc).reveal()
 
-    def mark(self, i, j):
-        self.grid[i][j].mark()
+    def mark(self, loc):
+        self.grid_at(loc).mark()
 
-    def unmark(self, i, j):
-        self.grid[i][j].unmark()
+    def unmark(self, loc):
+        self.grid_at(loc).unmark()
 
-    def num_bombs(self, i, j):
+    def num_bombs(self, loc):
+        i, j = loc[0], loc[1]
         counter = 0
         for x in range(i - 1, i + 2):
             for y in range(j - 1, j + 2):
@@ -74,14 +76,29 @@ class Board(object):
             return False
         return True
 
+    def grid_at(self, loc):
+        return self.grid[loc[0]][loc[1]]
+
 
 class Agent(object):
-    def __init__(self, n, bombs):
+    def __init__(self, n, m, bombs):
         self.location = (0, 0)
-        self.board = Board(n, bombs)
+        self.board = Board(n, m, bombs)
 
     def move(self, direction):
         self.location += direction
+
+    def reveal(self):
+        self.board.reveal(self.location)
+
+    def mark(self):
+        self.board.mark(self.location)
+
+    def unmark(self):
+        self.board.unmark(self.location)
+
+    def num_bombs(self):
+        return self.board.num_bombs(self.location)
 
 
 class Constants(object):
@@ -98,14 +115,15 @@ class Constants(object):
 
 
 class GP(object):
-    def __init__(self, gens, pop_size, num_problems, tree_max_height, cross_over_p, mutate_p):
+    def __init__(self, n, m, bombs, gens, pop_size, num_problems, tree_max_height, crossover_p, mutate_p):
+        self.n, self.m, self.bombs = n, m, bombs
         self.pset = None
         self.toolbox = None
         self.gens = gens
         self.popSize = pop_size
         self.numProblems = num_problems
         self.treeMaxHeight = tree_max_height
-        self.crossOverP = cross_over_p
+        self.crossOverP = crossover_p
         self.mutateP = mutate_p
 
     @staticmethod
@@ -133,12 +151,11 @@ class GP(object):
         for _, val in Constants.directions:
             self.pset.addTerminal(val, int)
         self.pset.renameArguments(ARG0="arr")
-
         creator.create("FitnessMin", base.Fitness, weights=(1.0,))
         creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMin)
 
         self.toolbox = base.Toolbox()
-        self.toolbox.register("expr", gp.genHalfAndHalf, pset=self.pset, min_=2, max_=self.treeMaxHeight)
+        self.toolbox.register("expr", gp.genHalfAndHalf, pset=self.pset, min=2, max_=self.treeMaxHeight)
         self.toolbox.register("individual", tools.initIterate, creator.Individual, self.toolbox.expr)
         self.toolbox.register("population", tools.initRepeat, list, self.toolbox.individual)
         self.toolbox.register("compile", gp.compile, pset=self.pset)
@@ -153,7 +170,7 @@ class GP(object):
         self.toolbox.decorate("mutate", gp.staticLimit(key=operator.attrgetter("height"), max_value=17))
 
     @staticmethod
-    def eval_solution(solution):
+    def eval_solution(solution, agent):
         penalty = 0
         for i in range(len(solution)):
             for j in range(i + 1, len(solution)):
@@ -164,7 +181,7 @@ class GP(object):
     def evalSymbReg(self, individual, problems):
         func = self.toolbox.compile(expr=individual)
         solutions = [func(problem) for problem in problems]
-        return sum([self.eval_solution(sol) for sol in solutions]),
+        return sum([self.eval_solution(sol, Agent(self.n, self.m, self.bombs)) for sol in solutions]),
 
     def plot(self, name):
         gens = range(self.gens + 1)
@@ -200,11 +217,13 @@ class GP(object):
 
 
 if __name__ == "__main__":
+    board = (6, 6, 10)  # [N, M, k] NxM with k bombs
     option_1 = (100, 1000, 100, 5, 0.7, 0.1)
     option_2 = (100, 1000, 100, 10, 0.7, 0.1)
     option_3 = (100, 100, 20, 10, 0.7, 0.1)
     option_4 = (100, 1000, 20, 10, 0.7, 0.01)
     options = [option_1, option_2, option_3, option_4]
+    map(lambda x: board + x, options)
     for curr in range(len(options)):
         ex2 = GP(*options[curr])
         ex2.init_vars()
