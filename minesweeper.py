@@ -160,7 +160,7 @@ class Application:
     # Preenche o grid: 
     for i in range(self.gridsize[0]):
       for j in range(self.gridsize[1]):
-        self.tilesDict[i,j] = Tile(self.fieldFrame,i,j,self.eventsHandler)      
+        self.tilesDict[i, j] = Tile(self.fieldFrame,i,j,self.eventsHandler)
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   def click_toplevel(self, event, toplevel, toplevel_widgets):
       widget = self.master.winfo_containing(event.x_root,event.y_root)
@@ -413,10 +413,10 @@ class Application:
     for i in range(row-1,row+2):
       for j in range(column-1,column+2):
         if (i,j) in self.tilesDict.keys():
-          neighbor = self.tilesDict[i,j]
+          neighbor = self.tilesDict[i, j]
           if neighbor.status == 'normal':
             neighbor.status = 'pressed'
-            neighbor.label.config(bg=PRESSEDBG,relief=PRESSEDRELIEF)
+            neighbor.label.config(bg=PRESSEDBG, relief=PRESSEDRELIEF)
             self.normaltiles -=1
             if self.normaltiles == self.qtbombs:
               self.gamewin()
@@ -472,10 +472,10 @@ class Tile:
     # Events binding:
     eventsList = ["<B1-Motion>","<Button-1>","<Button-3>","<ButtonRelease-1>"]
     for e in eventsList:
-      self.label.bind(e,eventsHandler)
+      self.label.bind(e, eventsHandler)
 #----------------------------------------------------------------------------------------------------
 
 
 root = tk.Tk()
-Application(root)
+x = Application(root)
 root.mainloop()
