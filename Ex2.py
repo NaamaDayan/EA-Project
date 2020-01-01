@@ -10,8 +10,6 @@ from deap import creator
 from deap import tools
 from deap import gp
 
-from Cell import Cell
-from Board import Board
 from Agent import Agent
 
 
@@ -76,7 +74,7 @@ class GP(object):
 
         self.toolbox.register("evaluate", self.eval_symb_reg, problems=self.generate_problems(self.numProblems))
         self.toolbox.register("select", tools.selTournament, tournsize=3)
-        self.toolbox.register("mate", gp.cxOnePoint)
+        self.toolbox.register("mate", gp.cxOnePointLeafBiased, 0.1)  # TODO maybe error
         self.toolbox.register("expr_mut", gp.genFull, min_=0, max_=2)
         self.toolbox.register("mutate", gp.mutUniform, expr=self.toolbox.expr_mut, pset=self.pset)
 
@@ -138,7 +136,8 @@ class GP(object):
 
 if __name__ == "__main__":
     board = (6, 6, 10)  # [N, M, k] NxM with k bombs
-    option_1 = (100, 1000, 100, 5, 0.7, 0.1)
+    # (gens, pop_size, num_problems, tree_max_height, crossover_p, mutate_p)
+    option_1 = (151, 50000, 100, 5, 0.9, 0.0)  # like paper
     option_2 = (100, 1000, 100, 10, 0.7, 0.1)
     option_3 = (100, 100, 20, 10, 0.7, 0.1)
     option_4 = (100, 1000, 20, 10, 0.7, 0.01)
