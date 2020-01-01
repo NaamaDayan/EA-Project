@@ -35,8 +35,6 @@ class Cell(object):
 
 class Board(object):
     def __init__(self, n, m, bombs):
-    # n: Board = [n*n]
-    def __init__(self, n, bombs):
         self.n = n
         self.m = m
         self.grid = self.init_grid(n, m, bombs)
@@ -54,28 +52,23 @@ class Board(object):
         return ret
 
     def reveal(self, loc):
-        # TODO
-        self.grid_at(loc).reveal()
-
-    def mark(self, loc):
-        self.grid_at(loc).mark()
-    def in_grid(self, row, column):
-        return 0 <= row < (len(self.grid)) and 0 <= column < (len(self.grid[0]))
+        self.expand_cells(*loc)
 
     def expand_cells(self, row, column):
         for i in range(row - 1, row + 2):
             for j in range(column - 1, column + 2):
-                if self.in_grid(i, j):  # i,j in board limits
+                if self.in_grid(i, j):  # i, j in board limits
                     neighbor = self.grid[i][j]
                     if not neighbor.is_revealed():
                         neighbor.reveal()
-                        if self.num_bombs(i, j):
-                            pass
-                        else:
+                        if self.num_bombs((i, j)) > 0:
                             self.expand_cells(i, j)
 
-    def mark(self, i, j):
-        self.grid[i][j].mark()
+    def in_grid(self, row, column):
+        return 0 <= row < (len(self.grid)) and 0 <= column < (len(self.grid[0]))
+
+    def mark(self, loc):
+        self.grid_at(loc).mark()
 
     def unmark(self, loc):
         self.grid_at(loc).unmark()
@@ -99,13 +92,14 @@ class Board(object):
 
     def grid_at(self, loc):
         return self.grid[loc[0]][loc[1]]
+
     def print_revealed(self):
         for i in range(len(self.grid)):
             for j in range(len(self.grid[i])):
                 if not self.grid[i][j].is_revealed():
                     print("@", end=" ")
                 else:
-                    print(self.num_bombs(i, j), end=" ")
+                    print(self.num_bombs((i, j)), end=" ")
             print()
 
 
@@ -199,7 +193,7 @@ class GP(object):
         self.toolbox.decorate("mutate", gp.staticLimit(key=operator.attrgetter("height"), max_value=17))
 
     @staticmethod
-    def eval_solution(solution, agent):
+    def eval_solution(solution):
         penalty = 0
         for i in range(len(solution)):
             for j in range(i + 1, len(solution)):
@@ -207,10 +201,10 @@ class GP(object):
                     penalty += 1
         return 1 / (penalty + 1)  # divide by 0?
 
-    def evalSymbReg(self, individual, problems):
+    def eval_symb_reg(self, individual, problems):
         func = self.toolbox.compile(expr=individual)
         solutions = [func(problem) for problem in problems]
-        return sum([self.eval_solution(sol, Agent(self.n, self.m, self.bombs)) for sol in solutions]),
+        return sum([self.eval_solution(sol) for sol in solutions]),
 
     def plot(self, name):
         gens = range(self.gens + 1)
@@ -237,12 +231,12 @@ class GP(object):
         stats_fit.register("worst", np.min)
         stats_fit.register("best", np.max)
 
-        self.pop, self.log = algorithms.eaSimple(pop, self.toolbox, self.crossOverP, self.mutateP, self.gens,
-                                                 stats=stats_fit,
-                                                 halloffame=hof, verbose=True)
+        ret_pop, ret_log = algorithms.eaSimple(pop, self.toolbox, self.crossOverP, self.mutateP, self.gens,
+                                               stats=stats_fit,
+                                               halloffame=hof, verbose=True)
 
         print(self.toolbox.compile(expr=hof[0])([1, 3, 2, 5, 4, 7, 6, 8]))
-        return self.pop, self.log, hof
+        return ret_pop, ret_log, hof
 
 
 if __name__ == "__main__":
@@ -258,8 +252,8 @@ if __name__ == "__main__":
         ex2.init_vars()
         ex2.fit()
         ex2.plot(curr)
-    board = Board(5, 2)
-    board.print_board()
-    board.expand_cells(3, 2)
-    print()
-    board.print_revealed()
+    # board = Board(5, 2)
+    # board.print_board()
+    # board.expand_cells(3, 2)
+    # print()
+    # board.print_revealed()
