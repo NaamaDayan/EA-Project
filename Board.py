@@ -7,6 +7,7 @@ class Board(object):
         self.n = n
         self.m = m
         self.grid = self.init_grid(n, m, bombs)
+        self.bombs = bombs
 
     @staticmethod
     def init_grid(n, m, bombs):
@@ -18,6 +19,7 @@ class Board(object):
                 row.append(Cell(x[i][j]))
             ret.append(row)
         return ret
+
 
     @staticmethod
     def random_grid(n, m, bombs):
