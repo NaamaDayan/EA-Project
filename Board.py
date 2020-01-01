@@ -58,14 +58,38 @@ class Board(object):
                     counter += 1
         return counter
 
+    def grid_at(self, loc):
+        return self.grid[loc[0]][loc[1]]
+
+    # for fitness - returns true if a cell with a bomb was revealed
+    def lost_game(self):
+        for i in range(len(self.grid)):
+            for j in range(len(self.grid[i])):
+                if self.grid[i][j].is_bomb() and self.grid[i][j].is_revealed():
+                    return True
+        return False
+
+    # for fitness - returns number of clicked cells
+    def num_revealed_cells(self):
+        counter = 0
+        for i in range(len(self.grid)):
+            for j in range(len(self.grid[i])):
+                counter += int(self.grid[i][j].is_revealed())
+        return counter
+
+    # for fitness - returns number of bombs that were correctly identified
+    def num_correct_flags(self):
+        correct_flags = 0
+        for i in range(len(self.grid)):
+            for j in range(len(self.grid[i])):
+                correct_flags += int(self.grid[i][j].is_bomb() and self.grid[i][j].is_marked())
+        return correct_flags
+
     def print_board(self):
         for i in range(len(self.grid)):
             for j in range(len(self.grid[i])):
                 print(int(self.grid[i][j].is_bomb()), end=" ")
             print()
-
-    def grid_at(self, loc):
-        return self.grid[loc[0]][loc[1]]
 
     def print_revealed(self):
         for i in range(len(self.grid)):

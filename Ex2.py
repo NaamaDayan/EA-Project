@@ -90,18 +90,18 @@ class GP(object):
         return ret
 
     @staticmethod
-    def eval_solution(solution):
-        penalty = 0
-        for i in range(len(solution)):
-            for j in range(i + 1, len(solution)):
-                if solution[i] == solution[j] or abs(i - j) == abs(solution[i] - solution[j]):
-                    penalty += 1
-        return 1 / (penalty + 1)  # divide by 0?
+    def eval_board(agent):
+        score = agent.board.num_correct_flags() + agent.board.num_revealed_cells()
+        if agent.board.lost_game():
+            score -= 1
+        return score
 
-    def eval_symb_reg(self, individual, problems):
+
+    def eval_all_boards(self, individual, problems):
         func = self.toolbox.compile(expr=individual)
-        solutions = [func(problem) for problem in problems]
-        return sum([self.eval_solution(sol) for sol in solutions]),
+        solutions_boards = [func(problem) for problem in problems]
+        score = sum([self.eval_board(sol) for sol in solutions_boards]),
+        
 
     def plot(self, name):
         gens = range(self.gens + 1)
