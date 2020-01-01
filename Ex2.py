@@ -9,9 +9,10 @@ from deap import base
 from deap import creator
 from deap import tools
 from deap import gp
-import Cell
-import Board
-import Agent
+
+from Cell import Cell
+from Board import Board
+from Agent import Agent
 
 
 class Constants(object):
@@ -61,8 +62,8 @@ class GP(object):
         self.pset.addPrimitive(self.if_then_else, 2)
         self.pset.addPrimitive(self.prog2, 2)
         self.pset.addPrimitive(self.prog3, 3)
-        for _, val in Constants.directions:
-            self.pset.addTerminal(val, int)
+        for key, _ in Constants.directions:
+            self.pset.addTerminal(key, int)
         self.pset.renameArguments(ARG0="arr")
         creator.create("FitnessMin", base.Fitness, weights=(1.0,))
         creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMin)
@@ -73,7 +74,7 @@ class GP(object):
         self.toolbox.register("population", tools.initRepeat, list, self.toolbox.individual)
         self.toolbox.register("compile", gp.compile, pset=self.pset)
 
-        self.toolbox.register("evaluate", self.evalSymbReg, problems=self.get_m_problems_n_queens(self.numProblems))
+        self.toolbox.register("evaluate", self.eval_symb_reg, problems=self.generate_problems(self.numProblems))
         self.toolbox.register("select", tools.selTournament, tournsize=3)
         self.toolbox.register("mate", gp.cxOnePoint)
         self.toolbox.register("expr_mut", gp.genFull, min_=0, max_=2)
@@ -81,6 +82,12 @@ class GP(object):
 
         self.toolbox.decorate("mate", gp.staticLimit(key=operator.attrgetter("height"), max_value=17))
         self.toolbox.decorate("mutate", gp.staticLimit(key=operator.attrgetter("height"), max_value=17))
+
+    def generate_problems(self, num):
+        ret = []
+        for _ in range(num):
+            ret.append(Agent(self.n, self.m, self.bombs))
+        return ret
 
     @staticmethod
     def eval_solution(solution):

@@ -1,3 +1,7 @@
+import numpy as np
+from Cell import Cell
+
+
 class Board(object):
     def __init__(self, n, m, bombs):
         self.n = n
@@ -6,8 +10,7 @@ class Board(object):
 
     @staticmethod
     def init_grid(n, m, bombs):
-        ratio = bombs * 1.0 / (n * m)
-        x = np.random.choice([0, 1], size=(n, m), p=[1 - ratio, ratio])
+        x = Board.random_grid(n, m, bombs)
         ret = []
         for i in range(n):
             row = []
@@ -15,6 +18,12 @@ class Board(object):
                 row.append(Cell(x[i][j]))
             ret.append(row)
         return ret
+
+    @staticmethod
+    def random_grid(n, m, bombs):
+        tmp = np.array([0] * (n * m - bombs) + [1] * bombs)
+        np.random.shuffle(tmp)
+        return tmp.reshape((n, m))
 
     def reveal(self, loc):
         self.expand_cells(*loc)

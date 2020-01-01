@@ -1,3 +1,6 @@
+from Board import Board
+
+
 class Agent(object):
     def __init__(self, n, m, bombs):
         self.location = (0, 0)

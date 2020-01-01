@@ -1,3 +1,4 @@
+
 class Cell(object):
     def __init__(self, bomb):
         self.revealed = False
