@@ -17,6 +17,9 @@ class Cell(object):
         self.marked = False
         self.bomb = bomb
 
+    def is_revealed(self):
+        return self.revealed
+
     def reveal(self):
         self.revealed = True
 
@@ -32,6 +35,8 @@ class Cell(object):
 
 class Board(object):
     def __init__(self, n, m, bombs):
+    # n: Board = [n*n]
+    def __init__(self, n, bombs):
         self.n = n
         self.m = m
         self.grid = self.init_grid(n, m, bombs)
@@ -54,6 +59,23 @@ class Board(object):
 
     def mark(self, loc):
         self.grid_at(loc).mark()
+    def in_grid(self, row, column):
+        return 0 <= row < (len(self.grid)) and 0 <= column < (len(self.grid[0]))
+
+    def expand_cells(self, row, column):
+        for i in range(row - 1, row + 2):
+            for j in range(column - 1, column + 2):
+                if self.in_grid(i, j):  # i,j in board limits
+                    neighbor = self.grid[i][j]
+                    if not neighbor.is_revealed():
+                        neighbor.reveal()
+                        if self.num_bombs(i, j):
+                            pass
+                        else:
+                            self.expand_cells(i, j)
+
+    def mark(self, i, j):
+        self.grid[i][j].mark()
 
     def unmark(self, loc):
         self.grid_at(loc).unmark()
@@ -69,15 +91,22 @@ class Board(object):
                     counter += 1
         return counter
 
-    def in_grid(self, x, y):
-        if x < 0 or y < 0:
-            return False
-        if x >= self.n or y >= self.n:
-            return False
-        return True
+    def print_board(self):
+        for i in range(len(self.grid)):
+            for j in range(len(self.grid[i])):
+                print(int(self.grid[i][j].is_bomb()), end=" ")
+            print()
 
     def grid_at(self, loc):
         return self.grid[loc[0]][loc[1]]
+    def print_revealed(self):
+        for i in range(len(self.grid)):
+            for j in range(len(self.grid[i])):
+                if not self.grid[i][j].is_revealed():
+                    print("@", end=" ")
+                else:
+                    print(self.num_bombs(i, j), end=" ")
+            print()
 
 
 class Agent(object):
@@ -229,3 +258,8 @@ if __name__ == "__main__":
         ex2.init_vars()
         ex2.fit()
         ex2.plot(curr)
+    board = Board(5, 2)
+    board.print_board()
+    board.expand_cells(3, 2)
+    print()
+    board.print_revealed()
