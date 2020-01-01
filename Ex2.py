@@ -15,6 +15,9 @@ class Cell(object):
         self.marked = False
         self.bomb = bomb
 
+    def is_revealed(self):
+        return self.revealed
+
     def reveal(self):
         self.revealed = True
 
@@ -26,6 +29,7 @@ class Cell(object):
 
 
 class Board(object):
+    # n: Board = [n*n]
     def __init__(self, n, bombs):
         self.grid = self.init_grid(n, bombs)
 
@@ -44,6 +48,22 @@ class Board(object):
     def reveal(self, i, j):
         # TODO
         self.grid[i][j].reveal()
+
+    def loc_in_grid(self, row, column):
+        return (0, 0) <= (row, column) < (len(self.grid), len(self.grid[0]))
+
+
+    def expand_cells(self, row, column):
+        for i in range(row - 1, row + 2):
+            for j in range(column - 1, column + 2):
+                if self.loc_in_grid(row, column):  # i,j in board limits
+                    neighbor = self.grid[i][j]
+                    if not neighbor.is_revealed():
+                        neighbor.reveal()
+                        if neighbor.has_neighbors():
+                            pass
+                        else:
+                            self.expand_cells(i, j)
 
     def mark(self, i, j):
         self.grid[i][j].mark()
@@ -163,13 +183,7 @@ class GP(object):
 
 
 if __name__ == "__main__":
-    option_1 = (100, 1000, 100, 5, 0.7, 0.1)
-    option_2 = (100, 1000, 100, 10, 0.7, 0.1)
-    option_3 = (100, 100, 20, 10, 0.7, 0.1)
-    option_4 = (100, 1000, 20, 10, 0.7, 0.01)
-    options = [option_1, option_2, option_3, option_4]
-    for i in range(len(options)):
-        ex2 = GP(*options[i])
-        ex2.init_vars()
-        ex2.fit()
-        ex2.plot(i)
+    board = Board(5, 2)
+    print (board.grid)
+    board.expand_cells(2,2)
+    print ("H")
