@@ -26,7 +26,9 @@ class Agent(object):
         self.board.reset(board_num)
 
     def move(self, direction):
-        self.location = tuple(map(sum, zip(self.location, Constants.directions[direction])))
+        temp_loc = tuple(map(sum, zip(self.location, Constants.directions[direction])))
+        if self.board.in_grid(*temp_loc):
+            self.location = temp_loc
 
     def reveal(self):
         self.board.reveal(self.location)
