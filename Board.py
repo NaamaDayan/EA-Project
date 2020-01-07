@@ -62,7 +62,7 @@ class Board(object):
             for y in range(j - 1, j + 2):
                 if not self.in_grid(x, y):
                     continue
-                if pred(self.grid_at((y, x))):
+                if pred(self.grid_at((x, y))):
                     counter += 1
         return counter
 
