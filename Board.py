@@ -62,7 +62,7 @@ class Board(object):
             for y in range(j - 1, j + 2):
                 if not self.in_grid(x, y):
                     continue
-                if pred(self.grid[x][y]):
+                if pred(self.grid_at((y, x))):
                     counter += 1
         return counter
 
@@ -141,3 +141,12 @@ class Board(object):
                 if not cell.is_bomb() and not cell.is_revealed():
                     return False
         return True
+
+    def display(self):
+        dict = {0: '0️', 1: '1️⃣', 2: '2️⃣', 3: '3️⃣', 4: '4️⃣', 5: '5️⃣', 6: '6️⃣', 7: '7️⃣', 8: '8️⃣'}
+        for i in range(self.n):
+            for j in range(self.m):
+                cell = self.grid_at((i, j))
+                print('☪️' if cell.is_bomb() else
+                      (dict[self.num_bombs((i, j))] if cell.is_revealed() else '⏹️'), end="")
+            print()
