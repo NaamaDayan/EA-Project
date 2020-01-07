@@ -2,6 +2,8 @@ import numpy as np
 import random
 from Cell import Cell
 
+dicts = {0: '0️', 1: '1️⃣', 2: '2️⃣', 3: '3️⃣', 4: '4️⃣', 5: '5️⃣', 6: '6️⃣', 7: '7️⃣', 8: '8️⃣'}
+
 
 class Board(object):
     def __init__(self, n, m, bombs):
@@ -143,10 +145,19 @@ class Board(object):
         return True
 
     def display(self):
-        dict = {0: '0️', 1: '1️⃣', 2: '2️⃣', 3: '3️⃣', 4: '4️⃣', 5: '5️⃣', 6: '6️⃣', 7: '7️⃣', 8: '8️⃣'}
         for i in range(self.n):
             for j in range(self.m):
                 cell = self.grid_at((i, j))
-                print('☪️' if cell.is_bomb() else
-                      (dict[self.num_bombs((i, j))] if cell.is_revealed() else '⏹️'), end="")
+                if cell.is_revealed():
+                    char = '☪️' if cell.is_bomb() else dicts[self.num_bombs((i, j))]
+                else:
+                    char = '⏹️' if not cell.is_marked() else '✡️'
+                print(char, end="")
+            print()
+
+    def diplay_debug(self):
+        for i in range(self.n):
+            for j in range(self.m):
+                cell = self.grid_at((i, j))
+                print('☪️' if cell.is_bomb() else dicts[self.num_bombs((i, j))], end="")
             print()
