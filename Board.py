@@ -39,14 +39,17 @@ class Board(object):
         self.expand_cells(*loc)
 
     def expand_cells(self, row, column):
+        cell = self.grid_at((row, column))
+        cell.reveal()
+        if self.num_bombs((row, column)) != 0:
+            return
         for i in range(row - 1, row + 2):
             for j in range(column - 1, column + 2):
-                if self.in_grid(i, j):  # i, j in board limits
-                    neighbor = self.grid[i][j]
-                    if not neighbor.is_revealed():
-                        neighbor.reveal()
-                        if self.num_bombs((i, j)) > 0:
-                            self.expand_cells(i, j)
+                if not self.in_grid(i, j) or i == row and j == column:  # i, j in board limits
+                    continue
+                neighbor = self.grid_at((i, j))
+                if not (neighbor.is_marked() or neighbor.is_bomb() or neighbor.is_revealed()):
+                    self.expand_cells(i, j)
 
     def in_grid(self, row, column):
         return 0 <= row < (len(self.grid)) and 0 <= column < (len(self.grid[0]))
@@ -155,7 +158,7 @@ class Board(object):
                 print(char, end="")
             print()
 
-    def diplay_debug(self):
+    def display_debug(self):
         for i in range(self.n):
             for j in range(self.m):
                 cell = self.grid_at((i, j))

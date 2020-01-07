@@ -73,5 +73,10 @@ class Agent(object):
               .format(self.location[0], self.location[1], self.board.n, self.board.m, self.board.bombs))
         self.board.display()
 
+    def display_debug(self):
+        print("Agent at: ({},{}) With board of size {}x{} and {} bombs"
+              .format(self.location[0], self.location[1], self.board.n, self.board.m, self.board.bombs))
+        self.board.display_debug()
+
     # Rule 1: if num_hidden == num_unflagged_bombs then all hidden are bombs
     # Rule 2: if num_flags == num_bombs then all are safe
