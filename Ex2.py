@@ -26,6 +26,7 @@ class GP(object):
         self.primitives = None
         self.toolbox = None
         self.gens = gens
+        self.log = None
         self.popSize = pop_size
         self.numProblems = num_problems
         self.treeMaxHeight = tree_max_height
@@ -47,7 +48,6 @@ class GP(object):
         self.primitives.addPrimitive(Functions.prog3, [Func, Func, Func], Func)
 
         # self.primitives.addPrimitive(self.agent.move, [MyInt], Func)
-
         # self.primitives.addPrimitive(Functions.id, [MyInt], MyInt)
 
         self.primitives.addPrimitive(Functions.if_all_safe(self.agent), [Func, Func], Func, "all_safe")
@@ -83,7 +83,7 @@ class GP(object):
 
         self.toolbox.register("evaluate", self.eval_all_boards, problems=self.generate_problems(self.numProblems))
         self.toolbox.register("select", tools.selTournament, tournsize=3)
-        self.toolbox.register("mate", gp.cxOnePointLeafBiased, 0.1)  # TODO maybe error
+        self.toolbox.register("mate", gp.cxOnePoint)  # TODO maybe error
         self.toolbox.register("expr_mut", gp.genFull, min_=0, max_=2)
         self.toolbox.register("mutate", gp.mutUniform, expr=self.toolbox.expr_mut)  # , pset=self.primitives)
 
@@ -136,7 +136,7 @@ class GP(object):
         plt.xlabel("generation number")
         plt.ylabel("fitness score")
         plt.title("fitness score by generations")
-        plt.savefig(name + '.png')
+        plt.savefig("{}.png".format(name))
         plt.show()
 
     def fit(self):
@@ -150,11 +150,11 @@ class GP(object):
         stats_fit.register("worst", np.min)
         stats_fit.register("best", np.max)
 
-        ret_pop, ret_log = algorithms.eaSimple(pop, self.toolbox, self.crossOverP, self.mutateP, self.gens,
-                                               stats=stats_fit,
-                                               halloffame=hof, verbose=True)
-        print(self.toolbox.compile(expr=hof[0])([1, 3, 2, 5, 4, 7, 6, 8]))
-        return ret_pop, ret_log, hof
+        ret_pop, self.log = algorithms.eaSimple(pop, self.toolbox, self.crossOverP, self.mutateP, self.gens,
+                                                stats=stats_fit,
+                                                halloffame=hof, verbose=True)
+        # print(self.toolbox.compile(expr=hof[0])([1, 3, 2, 5, 4, 7, 6, 8]))
+        return ret_pop, self.log, hof
 
 
 if __name__ == "__main__":

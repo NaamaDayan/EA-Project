@@ -66,5 +66,8 @@ class Agent(object):
     def if_all_bombs(self):
         return self.num_hidden() == self.num_unflagged_bombs()
 
+    def to_string(self):
+        print("")
+
     # Rule 1: if num_hidden == num_unflagged_bombs then all hidden are bombs
     # Rule 2: if num_flags == num_bombs then all are safe
