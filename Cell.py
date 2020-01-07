@@ -5,6 +5,10 @@ class Cell(object):
         self.marked = False
         self.bomb = bomb
 
+    def reset(self):
+        self.revealed = False
+        self.marked = False
+
     def is_revealed(self):
         return self.revealed
 

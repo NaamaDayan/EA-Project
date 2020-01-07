@@ -1,4 +1,5 @@
 import numpy as np
+import random
 from Cell import Cell
 
 
@@ -6,12 +7,18 @@ class Board(object):
     def __init__(self, n, m, bombs):
         self.n = n
         self.m = m
-        self.grid = self.init_grid(n, m, bombs)
+        self.grid = self.init_grid(n, m, bombs, 9999)
         self.bombs = bombs
 
+    def reset(self, board_num):
+        # for i in range(self.n):
+        #     for j in range(self.m):
+        #         self.grid_at((i, j)).reset()
+        self.grid = self.init_grid(self.n, self.m, self.bombs, board_num)
+
     @staticmethod
-    def init_grid(n, m, bombs):
-        x = Board.random_grid(n, m, bombs)
+    def init_grid(n, m, bombs, board_num):
+        x = Board.random_grid(n, m, bombs, board_num)
         ret = []
         for i in range(n):
             row = []
@@ -20,11 +27,10 @@ class Board(object):
             ret.append(row)
         return ret
 
-
     @staticmethod
-    def random_grid(n, m, bombs):
+    def random_grid(n, m, bombs, board_num):
         tmp = np.array([0] * (n * m - bombs) + [1] * bombs)
-        np.random.shuffle(tmp)
+        random.Random(board_num).shuffle(tmp)
         return tmp.reshape((n, m))
 
     def reveal(self, loc):
@@ -49,16 +55,42 @@ class Board(object):
     def unmark(self, loc):
         self.grid_at(loc).unmark()
 
-    def num_bombs(self, loc):
+    def num_helper(self, loc, pred):
         i, j = loc[0], loc[1]
         counter = 0
         for x in range(i - 1, i + 2):
             for y in range(j - 1, j + 2):
                 if not self.in_grid(x, y):
                     continue
-                if self.grid[x][y].is_bomb():
+                if pred(self.grid[x][y]):
                     counter += 1
         return counter
+
+    def num_bombs(self, loc):
+        return self.num_helper(loc, lambda cell: cell.is_bomb())
+
+    def num_unflagged_bombs(self, loc):
+        return self.num_helper(loc, lambda cell: cell.is_bomb() and not cell.is_marked())
+
+    def num_flags(self, loc):
+        return self.num_helper(loc, lambda cell: cell.is_marked())
+
+    def num_hidden(self, loc):
+        return self.num_helper(loc, lambda cell: not cell.is_revealed() and not cell.is_marked())
+
+    def helper(self, loc, set_cell):
+        i, j = loc[0], loc[1]
+        for x in range(i - 1, i + 2):
+            for y in range(j - 1, j + 2):
+                if not self.in_grid(x, y):
+                    continue
+                set_cell((x, y))
+
+    def flag_all(self, loc):
+        self.helper(loc, lambda x: self.mark(x))
+
+    def uncover_all(self, loc):
+        self.helper(loc, lambda x: self.reveal(x))
 
     def grid_at(self, loc):
         return self.grid[loc[0]][loc[1]]
@@ -101,3 +133,11 @@ class Board(object):
                 else:
                     print(self.num_bombs((i, j)), end=" ")
             print()
+
+    def finished(self):
+        for i in range(self.n):
+            for j in range(self.m):
+                cell = self.grid_at((i, j))
+                if not cell.is_bomb() and not cell.is_revealed():
+                    return False
+        return True
