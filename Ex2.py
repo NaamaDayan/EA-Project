@@ -99,7 +99,7 @@ class GP(object):
     @staticmethod
     def eval_board(agent, actions, board_num):
         agent.run(actions, board_num)
-        score = 2 * agent.board.num_revealed_cells()
+        score = agent.board.num_revealed_cells()
         if agent.board.lost_game():
             score -= 1
         return score
@@ -118,12 +118,13 @@ class GP(object):
         for i in range(self.numProblems):
             agent = self.agent
             curr_fitness = GP.eval_board(agent, func, i)
-            total_fitness += curr_fitness
-            if curr_fitness != 0:
+            if curr_fitness != -1: # not dummy
                 max_fitness += GP.max_fitness_for_board(agent.board)
+                total_fitness += curr_fitness
             else:
                 non_dumbs += 1
         std_score = max_fitness - total_fitness
+
         return 1 / (1 + std_score),
 
     def plot(self, name):
@@ -154,6 +155,7 @@ class GP(object):
                                                 stats=stats_fit,
                                                 halloffame=hof, verbose=True)
         # print(self.toolbox.compile(expr=hof[0])([1, 3, 2, 5, 4, 7, 6, 8]))
+        print (hof[0])
         return ret_pop, self.log, hof
 
 
