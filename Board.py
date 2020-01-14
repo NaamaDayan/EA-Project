@@ -1,8 +1,8 @@
-from queue import PriorityQueue
-
 import numpy as np
 import random
+
 from Cell import Cell
+from MyQueue import PrioritySet
 
 dicts = {0: '0️', 1: '1️⃣', 2: '2️⃣', 3: '3️⃣', 4: '4️⃣', 5: '5️⃣', 6: '6️⃣', 7: '7️⃣', 8: '8️⃣'}
 
@@ -13,7 +13,7 @@ class Board(object):
         self.m = m
         self.grid = self.init_grid(n, m, bombs, 9999)
         self.bombs = bombs
-        self.interesting_cells = PriorityQueue()
+        self.interesting_cells = PrioritySet()
 
     def reset(self, board_num):
         # for i in range(self.n):
@@ -41,15 +41,17 @@ class Board(object):
     def reveal(self, loc):
         self.expand_cells(*loc)
 
-    def get_priority(self, loc):
-        first = 8 - self.adj_hidden(loc)
+    def update_queue(self, loc):
+        first = self.adj_revealed_flagged(loc)
         second = self.adj_bombs(loc)
-        return 1 / (2 * first + second)
+        priority = 1 / (2 * first + second)
+        if self.adj_hidden(loc) != 0:
+            self.interesting_cells.push((loc[0], loc[1]), priority)
 
     def expand_cells(self, row, column):
         cell = self.grid_at((row, column))
         cell.reveal()
-        self.interesting_cells.put((self.get_priority((row, column)), (row, column)))
+        self.update_queue((row, column))
         if self.adj_bombs((row, column)) != 0:
             return
         for i in range(row - 1, row + 2):
@@ -57,7 +59,7 @@ class Board(object):
                 if not self.in_grid(i, j) or i == row and j == column:  # i, j in board limits
                     continue
                 neighbor = self.grid_at((i, j))
-                if not (neighbor.is_marked() or neighbor.is_bomb() or neighbor.is_revealed()):
+                if not (neighbor.is_flagged() or neighbor.is_bomb() or neighbor.is_revealed()):
                     self.expand_cells(i, j)
 
     def in_grid(self, row, column):
@@ -80,17 +82,23 @@ class Board(object):
                     counter += 1
         return counter
 
+    def adj(self, loc):
+        return self.adj_counter(loc, lambda cell: True)
+
     def adj_bombs(self, loc):
         return self.adj_counter(loc, lambda cell: cell.is_bomb())
 
     def adj_unflagged_bombs(self, loc):
-        return self.adj_counter(loc, lambda cell: cell.is_bomb() and not cell.is_marked())
+        return self.adj_counter(loc, lambda cell: cell.is_bomb() and not cell.is_flagged())
 
     def adj_flags(self, loc):
-        return self.adj_counter(loc, lambda cell: cell.is_marked())
+        return self.adj_counter(loc, lambda cell: cell.is_flagged())
 
     def adj_hidden(self, loc):
-        return self.adj_counter(loc, lambda cell: not cell.is_revealed() and not cell.is_marked())
+        return self.adj_counter(loc, lambda cell: not cell.is_revealed() and not cell.is_flagged())
+
+    def adj_revealed_flagged(self, loc):
+        return self.adj_counter(loc, lambda cell: cell.is_revealed() or cell.is_flagged())
 
     def apply_on_neighbors(self, loc, set_cell, max_sets):
         counter = 0
@@ -106,7 +114,7 @@ class Board(object):
         self.apply_on_neighbors(loc, lambda x: self.mark(x), self.adj_bombs(loc))
 
     def reveal_all(self, loc):
-        self.apply_on_neighbors(loc, lambda x: self.reveal(x), 8 - self.adj_bombs(loc))
+        self.apply_on_neighbors(loc, lambda x: self.reveal(x), self.adj(loc) - self.adj_bombs(loc))
 
     def grid_at(self, loc):
         return self.grid[loc[0]][loc[1]]
@@ -132,7 +140,7 @@ class Board(object):
         correct_flags = 0
         for i in range(len(self.grid)):
             for j in range(len(self.grid[i])):
-                correct_flags += int(self.grid[i][j].is_bomb() and self.grid[i][j].is_marked())
+                correct_flags += int(self.grid[i][j].is_bomb() and self.grid[i][j].is_flagged())
         return correct_flags
 
     def print_board(self):
@@ -154,9 +162,9 @@ class Board(object):
         for i in range(self.n):
             for j in range(self.m):
                 cell = self.grid_at((i, j))
-                if not cell.is_bomb() and not cell.is_revealed():
-                    return False
-        return True
+                if cell.is_bomb() and cell.is_revealed():
+                    return True
+        return False
 
     def display(self):
         for i in range(self.n):
@@ -165,7 +173,7 @@ class Board(object):
                 if cell.is_revealed():
                     char = '☪️' if cell.is_bomb() else dicts[self.adj_bombs((i, j))]
                 else:
-                    char = '⏹️' if not cell.is_marked() else '✡️'
+                    char = '⏹️' if not cell.is_flagged() else '✡️'
                 print(char, end="")
             print()
 

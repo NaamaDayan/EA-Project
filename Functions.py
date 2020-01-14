@@ -38,8 +38,8 @@ class Functions(object):
         return lambda out1, out2: partial(Functions.if_then_else, agent.if_all_bombs, out1, out2)
 
     @staticmethod
-    def move(agent, direction):
-        return lambda: agent.move(direction)
+    def move(agent):
+        return lambda: agent.move()
 
     # @staticmethod
     # def move(agent, x, y):

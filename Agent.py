@@ -16,8 +16,11 @@ class Agent(object):
         self.moves = 0
 
     def move(self):
-        loc = self.get_interesting_cells().get()[1] if not \
-            self.get_interesting_cells().empty() else (0, 0)
+        if self.get_interesting_cells().size() == 0:
+            loc = (int(self.board.n / 2), int(self.board.m / 2))
+            self.reveal()
+        else:
+            loc = self.get_interesting_cells().pop()
         if self.board.in_grid(*loc):
             self.location = loc
 
@@ -50,7 +53,7 @@ class Agent(object):
 
     def run(self, actions, board_num):
         self.reset(board_num)
-        while self.moves < self.max_moves:
+        while self.moves < self.max_moves and not self.board.finished():
             actions()
             self.moves += 1
 

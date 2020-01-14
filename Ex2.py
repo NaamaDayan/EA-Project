@@ -16,7 +16,7 @@ class Func(object):
     pass
 
 
-class MyInt(object):
+class Move(object):
     pass
 
 
@@ -44,8 +44,8 @@ class GP(object):
         # self.primitives.addPrimitive(operator.gt, [int, int], bool)
         # self.primitives.addPrimitive(operator.lt, [int, int], bool)
 
-        self.primitives.addPrimitive(Functions.prog2, [Func, Func], Func)
-        self.primitives.addPrimitive(Functions.prog3, [Func, Func, Func], Func)
+        self.primitives.addPrimitive(Functions.prog2, [Move, Func], Func)
+        # self.primitives.addPrimitive(Functions.prog3, [Func, Func, Func], Func)
 
         # self.primitives.addPrimitive(self.agent.move, [MyInt], Func)
         # self.primitives.addPrimitive(Functions.id, [MyInt], MyInt)
@@ -58,10 +58,11 @@ class GP(object):
         # self.primitives.addPrimitive(self.agent.num_flags, [], int)
         # self.primitives.addPrimitive(self.agent.num_unflagged_bombs, [], int)
 
-        self.primitives.addTerminal(self.agent.move, Func)
-        self.primitives.addTerminal(self.agent.flag, Func)
-        self.primitives.addTerminal(self.agent.unflag, Func)
-        self.primitives.addTerminal(self.agent.reveal, Func)
+        self.primitives.addPrimitive(Functions.move(self.agent), [], Move, "movepri")
+        self.primitives.addTerminal(self.agent.move, Move)
+        # self.primitives.addTerminal(self.agent.flag, Func)
+        # self.primitives.addTerminal(self.agent.unflag, Func)
+        # self.primitives.addTerminal(self.agent.reveal, Func)
         self.primitives.addTerminal(self.agent.flag_all, Func)
         self.primitives.addTerminal(self.agent.reveal_all, Func)
 
@@ -73,7 +74,7 @@ class GP(object):
         creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMin, pset=self.primitives)
 
         self.toolbox = base.Toolbox()
-        self.toolbox.register("expr", gp.genHalfAndHalf, pset=self.primitives, min_=1, max_=2)
+        self.toolbox.register("expr", gp.genHalfAndHalf, pset=self.primitives, min_=1, max_=5)
         self.toolbox.register("individual", tools.initIterate, creator.Individual, self.toolbox.expr)
         self.toolbox.register("population", tools.initRepeat, list, self.toolbox.individual)
         self.toolbox.register("compile", gp.compile, pset=self.primitives)
@@ -95,6 +96,7 @@ class GP(object):
 
     @staticmethod
     def eval_board(agent, actions, board_num):
+        # print(actions)
         agent.run(actions, board_num)
         score = agent.board.num_revealed_cells()
         if agent.board.lost_game():
@@ -153,9 +155,11 @@ class GP(object):
                                                 halloffame=hof, verbose=True)
         # print(self.toolbox.compile(expr=hof[0])([1, 3, 2, 5, 4, 7, 6, 8]))
         print(hof[0])
-        ag = Agent(6, 6, 10)
+        ag = self.agent
+        ag.reset(999)
         ag.display()
-        print(self.toolbox.compile(expr=hof[0])())
+        func = self.toolbox.compile(expr=hof[0])
+        ag.run(func, 999)
         ag.display()
 
         return ret_pop, self.log, hof
@@ -165,7 +169,7 @@ if __name__ == "__main__":
     board = (6, 6, 10)  # [N, M, k] NxM with k bombs
     # (gens, pop_size, num_problems, tree_max_height, crossover_p, mutate_p)
     # option_1 = (151, 50000, 36, 5, 0.9, 0.0)  # like paper
-    option_1 = (100, 100, 100, 0.9, 0.0)
+    option_1 = (40, 200, 10, 0.9, 0.0)
     option_2 = (100, 1000, 100, 0.7, 0.1)
     option_3 = (100, 100, 20, 0.7, 0.1)
     option_4 = (100, 1000, 20, 0.7, 0.01)
