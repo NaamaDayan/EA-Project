@@ -21,7 +21,7 @@ class MyInt(object):
 
 
 class GP(object):
-    def __init__(self, n, m, bombs, gens, pop_size, num_problems, tree_max_height, crossover_p, mutate_p):
+    def __init__(self, n, m, bombs, gens, pop_size, num_problems, crossover_p, mutate_p):
         self.n, self.m, self.bombs = n, m, bombs
         self.primitives = None
         self.toolbox = None
@@ -29,13 +29,14 @@ class GP(object):
         self.log = None
         self.popSize = pop_size
         self.numProblems = num_problems
-        self.treeMaxHeight = tree_max_height
         self.crossOverP = crossover_p
         self.mutateP = mutate_p
         self.agent = Agent(self.n, self.m, self.bombs)
 
     def init_vars(self):
+
         self.primitives = gp.PrimitiveSetTyped("MAIN", [], Func)
+
 
         # self.primitives.addPrimitive(Functions.if_then_else, [bool, Func, Func], Func)  # maybe 3
         # self.primitives.addPrimitive(Functions.eq, [int, int], bool)
@@ -58,11 +59,11 @@ class GP(object):
         # self.primitives.addPrimitive(self.agent.num_flags, [], int)
         # self.primitives.addPrimitive(self.agent.num_unflagged_bombs, [], int)
 
-        self.primitives.addTerminal(self.agent.mark, Func)
-        self.primitives.addTerminal(self.agent.unmark, Func)
+        self.primitives.addTerminal(self.agent.flag, Func)
+        self.primitives.addTerminal(self.agent.unflag, Func)
         self.primitives.addTerminal(self.agent.reveal, Func)
         self.primitives.addTerminal(self.agent.flag_all, Func)
-        self.primitives.addTerminal(self.agent.uncover_all, Func)
+        self.primitives.addTerminal(self.agent.reveal_all, Func)
 
         for key in Constants.directions:
             self.primitives.addTerminal(Functions.move(self.agent, key), Func,
@@ -85,7 +86,7 @@ class GP(object):
         self.toolbox.register("select", tools.selTournament, tournsize=3)
         self.toolbox.register("mate", gp.cxOnePoint)  # TODO maybe error
         self.toolbox.register("expr_mut", gp.genFull, min_=0, max_=2)
-        self.toolbox.register("mutate", gp.mutUniform, expr=self.toolbox.expr_mut)  # , pset=self.primitives)
+        self.toolbox.register("mutate", gp.mutUniform, expr=self.toolbox.expr_mut, pset=self.primitives)
 
         self.toolbox.decorate("mate", gp.staticLimit(key=operator.attrgetter("height"), max_value=17))
         self.toolbox.decorate("mutate", gp.staticLimit(key=operator.attrgetter("height"), max_value=17))
@@ -156,6 +157,11 @@ class GP(object):
                                                 halloffame=hof, verbose=True)
         # print(self.toolbox.compile(expr=hof[0])([1, 3, 2, 5, 4, 7, 6, 8]))
         print (hof[0])
+        ag = Agent(6,6,10)
+        ag.display()
+        print(self.toolbox.compile(expr=hof[0])())
+        ag.display()
+
         return ret_pop, self.log, hof
 
 
@@ -163,7 +169,7 @@ if __name__ == "__main__":
     board = (6, 6, 10)  # [N, M, k] NxM with k bombs
     # (gens, pop_size, num_problems, tree_max_height, crossover_p, mutate_p)
     # option_1 = (151, 50000, 36, 5, 0.9, 0.0)  # like paper
-    option_1 = (100, 100, 3, 20, 0.9, 0.0)
+    option_1 = (100, 100, 100, 20, 0.9, 0.0)
     option_2 = (100, 1000, 100, 10, 0.7, 0.1)
     option_3 = (100, 100, 20, 10, 0.7, 0.1)
     option_4 = (100, 1000, 20, 10, 0.7, 0.01)

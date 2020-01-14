@@ -92,19 +92,21 @@ class Board(object):
     def adj_hidden(self, loc):
         return self.adj_counter(loc, lambda cell: not cell.is_revealed() and not cell.is_marked())
 
-    def helper(self, loc, set_cell):
+    def apply_on_neighbors(self, loc, set_cell, max_sets):
+        counter = 0
         i, j = loc[0], loc[1]
         for x in range(i - 1, i + 2):
             for y in range(j - 1, j + 2):
-                if not self.in_grid(x, y):
+                if not self.in_grid(x, y) or counter > max_sets:
                     continue
+                counter += 1
                 set_cell((x, y))
 
     def flag_all(self, loc):
-        self.helper(loc, lambda x: self.mark(x))
+        self.apply_on_neighbors(loc, lambda x: self.mark(x), self.num_bombs(loc))
 
-    def uncover_all(self, loc):
-        self.helper(loc, lambda x: self.reveal(x))
+    def reveal_all(self, loc):
+        self.apply_on_neighbors(loc, lambda x: self.reveal(x), 8 - self.num_bombs(loc))
 
     def grid_at(self, loc):
         return self.grid[loc[0]][loc[1]]
