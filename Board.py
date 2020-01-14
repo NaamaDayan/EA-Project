@@ -1,3 +1,5 @@
+from queue import PriorityQueue
+
 import numpy as np
 import random
 from Cell import Cell
@@ -11,6 +13,7 @@ class Board(object):
         self.m = m
         self.grid = self.init_grid(n, m, bombs, 9999)
         self.bombs = bombs
+        self.interesting_cells = PriorityQueue()
 
     def reset(self, board_num):
         # for i in range(self.n):
@@ -38,10 +41,16 @@ class Board(object):
     def reveal(self, loc):
         self.expand_cells(*loc)
 
+    def get_priority(self, loc):
+        first = 8 - self.adj_hidden(loc)
+        second = self.adj_bombs(loc)
+        return 1 / (2 * first + second)
+
     def expand_cells(self, row, column):
         cell = self.grid_at((row, column))
         cell.reveal()
-        if self.num_bombs((row, column)) != 0:
+        self.interesting_cells.put((self.get_priority((row, column)), (row, column)))
+        if self.adj_bombs((row, column)) != 0:
             return
         for i in range(row - 1, row + 2):
             for j in range(column - 1, column + 2):
@@ -60,7 +69,7 @@ class Board(object):
     def unmark(self, loc):
         self.grid_at(loc).unmark()
 
-    def num_helper(self, loc, pred):
+    def adj_counter(self, loc, pred):
         i, j = loc[0], loc[1]
         counter = 0
         for x in range(i - 1, i + 2):
@@ -71,17 +80,17 @@ class Board(object):
                     counter += 1
         return counter
 
-    def num_bombs(self, loc):
-        return self.num_helper(loc, lambda cell: cell.is_bomb())
+    def adj_bombs(self, loc):
+        return self.adj_counter(loc, lambda cell: cell.is_bomb())
 
-    def num_unflagged_bombs(self, loc):
-        return self.num_helper(loc, lambda cell: cell.is_bomb() and not cell.is_marked())
+    def adj_unflagged_bombs(self, loc):
+        return self.adj_counter(loc, lambda cell: cell.is_bomb() and not cell.is_marked())
 
-    def num_flags(self, loc):
-        return self.num_helper(loc, lambda cell: cell.is_marked())
+    def adj_flags(self, loc):
+        return self.adj_counter(loc, lambda cell: cell.is_marked())
 
-    def num_hidden(self, loc):
-        return self.num_helper(loc, lambda cell: not cell.is_revealed() and not cell.is_marked())
+    def adj_hidden(self, loc):
+        return self.adj_counter(loc, lambda cell: not cell.is_revealed() and not cell.is_marked())
 
     def helper(self, loc, set_cell):
         i, j = loc[0], loc[1]
@@ -136,7 +145,7 @@ class Board(object):
                 if not self.grid[i][j].is_revealed():
                     print("@", end=" ")
                 else:
-                    print(self.num_bombs((i, j)), end=" ")
+                    print(self.adj_bombs((i, j)), end=" ")
             print()
 
     def finished(self):
@@ -152,7 +161,7 @@ class Board(object):
             for j in range(self.m):
                 cell = self.grid_at((i, j))
                 if cell.is_revealed():
-                    char = '☪️' if cell.is_bomb() else dicts[self.num_bombs((i, j))]
+                    char = '☪️' if cell.is_bomb() else dicts[self.adj_bombs((i, j))]
                 else:
                     char = '⏹️' if not cell.is_marked() else '✡️'
                 print(char, end="")
@@ -162,5 +171,5 @@ class Board(object):
         for i in range(self.n):
             for j in range(self.m):
                 cell = self.grid_at((i, j))
-                print('☪️' if cell.is_bomb() else dicts[self.num_bombs((i, j))], end="")
+                print('☪️' if cell.is_bomb() else dicts[self.adj_bombs((i, j))], end="")
             print()
