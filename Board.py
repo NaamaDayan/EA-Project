@@ -103,10 +103,10 @@ class Board(object):
                 set_cell((x, y))
 
     def flag_all(self, loc):
-        self.apply_on_neighbors(loc, lambda x: self.mark(x), self.num_bombs(loc))
+        self.apply_on_neighbors(loc, lambda x: self.mark(x), self.adj_bombs(loc))
 
     def reveal_all(self, loc):
-        self.apply_on_neighbors(loc, lambda x: self.reveal(x), 8 - self.num_bombs(loc))
+        self.apply_on_neighbors(loc, lambda x: self.reveal(x), 8 - self.adj_bombs(loc))
 
     def grid_at(self, loc):
         return self.grid[loc[0]][loc[1]]

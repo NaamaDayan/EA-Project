@@ -165,13 +165,14 @@ if __name__ == "__main__":
     board = (6, 6, 10)  # [N, M, k] NxM with k bombs
     # (gens, pop_size, num_problems, tree_max_height, crossover_p, mutate_p)
     # option_1 = (151, 50000, 36, 5, 0.9, 0.0)  # like paper
-    option_1 = (100, 100, 100, 20, 0.9, 0.0)
-    option_2 = (100, 1000, 100, 10, 0.7, 0.1)
-    option_3 = (100, 100, 20, 10, 0.7, 0.1)
-    option_4 = (100, 1000, 20, 10, 0.7, 0.01)
+    option_1 = (100, 100, 100, 0.9, 0.0)
+    option_2 = (100, 1000, 100, 0.7, 0.1)
+    option_3 = (100, 100, 20, 0.7, 0.1)
+    option_4 = (100, 1000, 20, 0.7, 0.01)
     options = [option_1, option_2, option_3, option_4]
     options = list(map(lambda x: board + x, options))
     for curr in [0]:  # range(len(options)):
+        print(*options[curr])
         ex2 = GP(*options[curr])
         ex2.init_vars()
         ex2.fit()
