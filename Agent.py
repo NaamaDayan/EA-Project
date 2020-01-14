@@ -16,7 +16,7 @@ class Agent(object):
         self.moves = 0
 
     def move(self):
-        loc = self.get_interesting_cells().get()[1] if not\
+        loc = self.get_interesting_cells().get()[1] if not \
             self.get_interesting_cells().empty() else (0, 0)
         if self.board.in_grid(*loc):
             self.location = loc

@@ -8,7 +8,7 @@ from deap import creator
 from deap import tools
 from deap import gp
 
-from Agent import Agent, Constants
+from Agent import Agent
 from Functions import Functions
 
 
@@ -37,7 +37,6 @@ class GP(object):
 
         self.primitives = gp.PrimitiveSetTyped("MAIN", [], Func)
 
-
         # self.primitives.addPrimitive(Functions.if_then_else, [bool, Func, Func], Func)  # maybe 3
         # self.primitives.addPrimitive(Functions.eq, [int, int], bool)
         # self.primitives.addPrimitive(operator.and_, [bool, bool], bool)
@@ -59,15 +58,12 @@ class GP(object):
         # self.primitives.addPrimitive(self.agent.num_flags, [], int)
         # self.primitives.addPrimitive(self.agent.num_unflagged_bombs, [], int)
 
+        self.primitives.addTerminal(self.agent.move, Func)
         self.primitives.addTerminal(self.agent.flag, Func)
         self.primitives.addTerminal(self.agent.unflag, Func)
         self.primitives.addTerminal(self.agent.reveal, Func)
         self.primitives.addTerminal(self.agent.flag_all, Func)
         self.primitives.addTerminal(self.agent.reveal_all, Func)
-
-        for key in Constants.directions:
-            self.primitives.addTerminal(Functions.move(self.agent, key), Func,
-                                        name="move{}".format(key))
 
         # self.primitives.addTerminal(False, bool)
         # self.primitives.addTerminal(True, bool)
@@ -119,7 +115,7 @@ class GP(object):
         for i in range(self.numProblems):
             agent = self.agent
             curr_fitness = GP.eval_board(agent, func, i)
-            if curr_fitness != -1: # not dummy
+            if curr_fitness != -1:  # not dummy
                 max_fitness += GP.max_fitness_for_board(agent.board)
                 total_fitness += curr_fitness
             else:
@@ -156,8 +152,8 @@ class GP(object):
                                                 stats=stats_fit,
                                                 halloffame=hof, verbose=True)
         # print(self.toolbox.compile(expr=hof[0])([1, 3, 2, 5, 4, 7, 6, 8]))
-        print (hof[0])
-        ag = Agent(6,6,10)
+        print(hof[0])
+        ag = Agent(6, 6, 10)
         ag.display()
         print(self.toolbox.compile(expr=hof[0])())
         ag.display()
