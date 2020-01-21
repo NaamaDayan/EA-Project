@@ -20,6 +20,10 @@ class Move(object):
     pass
 
 
+class MyInt(object):
+    pass
+
+
 class GP(object):
     def __init__(self, n, m, bombs, gens, pop_size, num_problems, crossover_p, mutate_p):
         self.n, self.m, self.bombs = n, m, bombs
@@ -32,17 +36,19 @@ class GP(object):
         self.crossOverP = crossover_p
         self.mutateP = mutate_p
         self.agent = Agent(self.n, self.m, self.bombs)
+        self.final_func = None
 
     def init_vars(self):
 
         self.primitives = gp.PrimitiveSetTyped("MAIN", [], Func)
 
-        # self.primitives.addPrimitive(Functions.if_then_else, [bool, Func, Func], Func)  # maybe 3
-        # self.primitives.addPrimitive(Functions.eq, [int, int], bool)
-        # self.primitives.addPrimitive(operator.and_, [bool, bool], bool)
-        # self.primitives.addPrimitive(operator.or_, [bool, bool], bool)
-        # self.primitives.addPrimitive(operator.gt, [int, int], bool)
-        # self.primitives.addPrimitive(operator.lt, [int, int], bool)
+        self.primitives.addPrimitive(Functions.if_then_else2, [bool, Func, Func], Func)  # maybe 3
+        self.primitives.addPrimitive(Functions.eq, [MyInt, MyInt], bool)
+        self.primitives.addPrimitive(Functions.ne, [MyInt, MyInt], bool)
+        self.primitives.addPrimitive(Functions.and_, [bool, bool], bool)
+        self.primitives.addPrimitive(Functions.or_, [bool, bool], bool)
+        self.primitives.addPrimitive(Functions.gt, [MyInt, MyInt], bool)
+        self.primitives.addPrimitive(Functions.lt, [MyInt, MyInt], bool)
 
         self.primitives.addPrimitive(Functions.prog2, [Move, Func], Func)
         # self.primitives.addPrimitive(Functions.prog3, [Func, Func, Func], Func)
@@ -53,10 +59,10 @@ class GP(object):
         self.primitives.addPrimitive(Functions.if_all_safe(self.agent), [Func, Func], Func, "all_safe")
         self.primitives.addPrimitive(Functions.if_all_bombs(self.agent), [Func, Func], Func, "all_bombs")
 
-        # self.primitives.addPrimitive(self.agent.num_bombs, [], int)
-        # self.primitives.addPrimitive(self.agent.num_hidden, [], int)
-        # self.primitives.addPrimitive(self.agent.num_flags, [], int)
-        # self.primitives.addPrimitive(self.agent.num_unflagged_bombs, [], int)
+        self.primitives.addPrimitive(self.agent.num_bombs, [], MyInt)
+        self.primitives.addPrimitive(self.agent.num_hidden, [], MyInt)
+        self.primitives.addPrimitive(self.agent.num_flags, [], MyInt)
+        self.primitives.addPrimitive(self.agent.num_unflagged_bombs, [], MyInt)
 
         self.primitives.addPrimitive(Functions.move(self.agent), [], Move, "movepri")
         self.primitives.addTerminal(self.agent.move, Move)
@@ -66,14 +72,19 @@ class GP(object):
         self.primitives.addTerminal(self.agent.flag_all, Func)
         self.primitives.addTerminal(self.agent.reveal_all, Func)
 
-        # self.primitives.addTerminal(False, bool)
-        # self.primitives.addTerminal(True, bool)
+        for i in range(8):
+            self.primitives.addTerminal(i, MyInt)
+
+        self.primitives.addTerminal(False, bool)
+        self.primitives.addTerminal(True, bool)
 
         self.primitives.renameArguments(ARG0="agent")
         creator.create("FitnessMin", base.Fitness, weights=(1.0,))
         creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMin, pset=self.primitives)
 
         self.toolbox = base.Toolbox()
+        # self.toolbox.register("expr", Functions.generate_safe, pset=self.primitives, min_=1, max_=10,
+        #                       terminal_types=[MyInt, bool, Func])
         self.toolbox.register("expr", gp.genHalfAndHalf, pset=self.primitives, min_=1, max_=5)
         self.toolbox.register("individual", tools.initIterate, creator.Individual, self.toolbox.expr)
         self.toolbox.register("population", tools.initRepeat, list, self.toolbox.individual)
@@ -98,7 +109,7 @@ class GP(object):
     def eval_board(agent, actions, board_num):
         # print(actions)
         agent.run(actions, board_num)
-        score = agent.board.num_revealed_cells()
+        score = agent.board.num_revealed_cells() - agent.first_reveal
         if agent.board.lost_game():
             score -= 1
         return score
@@ -158,18 +169,18 @@ class GP(object):
         ag = self.agent
         ag.reset(999)
         ag.display()
-        func = self.toolbox.compile(expr=hof[0])
-        ag.run(func, 999)
+        self.final_func = self.toolbox.compile(expr=hof[0])
+        ag.run(self.final_func, 999)
         ag.display()
 
         return ret_pop, self.log, hof
 
 
 if __name__ == "__main__":
-    board = (6, 6, 10)  # [N, M, k] NxM with k bombs
+    board = (6, 6, 8)  # [N, M, k] NxM with k bombs
     # (gens, pop_size, num_problems, tree_max_height, crossover_p, mutate_p)
     # option_1 = (151, 50000, 36, 5, 0.9, 0.0)  # like paper
-    option_1 = (100, 1000, 10, 0.9, 0.0)
+    option_1 = (500, 500, 10, 0.9, 0.0)
     option_2 = (100, 1000, 100, 0.7, 0.1)
     option_3 = (100, 100, 20, 0.7, 0.1)
     option_4 = (100, 1000, 20, 0.7, 0.01)

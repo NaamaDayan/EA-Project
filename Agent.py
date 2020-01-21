@@ -9,16 +9,19 @@ class Agent(object):
         self.board = Board(n, m, bombs)
         self.max_moves = n * m * 2
         self.moves = 0
+        self.first_reveal = 0
 
     def reset(self, board_num):
         self.location = (0, 0)
         self.board.reset(board_num)
         self.moves = 0
+        self.first_reveal = 0
 
     def move(self):
         if self.get_interesting_cells().size() == 0:
             loc = (int(self.board.n / 2), int(self.board.m / 2))
             self.reveal()
+            self.first_reveal = self.board.num_revealed_cells()
         else:
             loc = self.get_interesting_cells().pop()
         if self.board.in_grid(*loc):
