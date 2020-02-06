@@ -68,6 +68,7 @@ class Functions(object):
     def move(agent):
         return lambda: agent.move()
 
+
     # @staticmethod
     # def move(agent, x, y):
     #     agent.move((x, y))

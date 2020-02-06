@@ -40,7 +40,13 @@ class Board(object):
         return tmp.reshape((n, m))
 
     def reveal(self, loc):
-        self.expand_cells(*loc)
+        if not self.grid_at(loc).is_flagged():
+            self.expand_cells(*loc)
+            for row in range(self.n):
+                for column in range(self.m):
+                    self.update_queue((row, column))
+            return True
+        return False
 
     def update_queue(self, loc):
         first = self.adj_revealed_flagged(loc)
@@ -52,7 +58,7 @@ class Board(object):
     def expand_cells(self, row, column):
         cell = self.grid_at((row, column))
         cell.reveal()
-        self.update_queue((row, column))
+        # self.update_queue((row, column))
         if self.adj_bombs((row, column)) != 0:
             return
         for i in range(row - 1, row + 2):
@@ -67,7 +73,10 @@ class Board(object):
         return 0 <= row < (len(self.grid)) and 0 <= column < (len(self.grid[0]))
 
     def mark(self, loc):
-        self.grid_at(loc).mark()
+        if not self.grid_at(loc).is_revealed():
+            self.grid_at(loc).mark()
+            return True
+        return False
 
     def unmark(self, loc):
         self.grid_at(loc).unmark()
@@ -108,8 +117,8 @@ class Board(object):
             for y in range(j - 1, j + 2):
                 if not self.in_grid(x, y) or counter > max_sets:
                     continue
-                counter += 1
-                set_cell((x, y))
+                if set_cell((x, y)):
+                    counter += 1
 
     def flag_all(self, loc):
         self.apply_on_neighbors(loc, lambda x: self.mark(x), self.adj_bombs(loc))

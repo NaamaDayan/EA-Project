@@ -42,42 +42,48 @@ class GP(object):
 
         self.primitives = gp.PrimitiveSetTyped("MAIN", [], Func)
 
-        self.primitives.addPrimitive(Functions.if_then_else2, [bool, Func, Func], Func)  # maybe 3
-        self.primitives.addPrimitive(Functions.eq, [MyInt, MyInt], bool)
-        self.primitives.addPrimitive(Functions.ne, [MyInt, MyInt], bool)
-        self.primitives.addPrimitive(Functions.and_, [bool, bool], bool)
-        self.primitives.addPrimitive(Functions.or_, [bool, bool], bool)
-        self.primitives.addPrimitive(Functions.gt, [MyInt, MyInt], bool)
-        self.primitives.addPrimitive(Functions.lt, [MyInt, MyInt], bool)
-
         self.primitives.addPrimitive(Functions.prog2, [Move, Func], Func)
+        self.primitives.addPrimitive(Functions.move(self.agent), [], Move, "movepri")
+
+        self.primitives.addTerminal(self.agent.move, Move)
+
+        self.primitives.addPrimitive(Functions.if_all_safe(self.agent), [Func, Func], Func, "all_safe")
+        self.primitives.addPrimitive(Functions.if_all_bombs(self.agent), [Func, Func], Func, "all_bombs")
+        self.primitives.addTerminal(self.agent.flag_all, Func)
+        self.primitives.addTerminal(self.agent.reveal_all, Func)
+
+        # self.primitives.addTerminal(self.agent.do_stuff, Func)
+
+        # self.primitives.addPrimitive(Functions.if_then_else2, [bool, Func, Func], Func)  # maybe 3
+        # self.primitives.addPrimitive(Functions.eq, [MyInt, MyInt], bool)
+        # self.primitives.addPrimitive(Functions.ne, [MyInt, MyInt], bool)
+        # self.primitives.addPrimitive(Functions.and_, [bool, bool], bool)
+        # self.primitives.addPrimitive(Functions.or_, [bool, bool], bool)
+        # self.primitives.addPrimitive(Functions.gt, [MyInt, MyInt], bool)
+        # self.primitives.addPrimitive(Functions.lt, [MyInt, MyInt], bool)
+
         # self.primitives.addPrimitive(Functions.prog3, [Func, Func, Func], Func)
 
         # self.primitives.addPrimitive(self.agent.move, [MyInt], Func)
         # self.primitives.addPrimitive(Functions.id, [MyInt], MyInt)
 
-        self.primitives.addPrimitive(Functions.if_all_safe(self.agent), [Func, Func], Func, "all_safe")
-        self.primitives.addPrimitive(Functions.if_all_bombs(self.agent), [Func, Func], Func, "all_bombs")
 
-        self.primitives.addPrimitive(self.agent.num_bombs, [], MyInt)
-        self.primitives.addPrimitive(self.agent.num_hidden, [], MyInt)
-        self.primitives.addPrimitive(self.agent.num_flags, [], MyInt)
-        self.primitives.addPrimitive(self.agent.num_unflagged_bombs, [], MyInt)
+        # self.primitives.addPrimitive(self.agent.num_bombs, [], MyInt)
+        # self.primitives.addPrimitive(self.agent.num_hidden, [], MyInt)
+        # self.primitives.addPrimitive(self.agent.num_flags, [], MyInt)
+        # self.primitives.addPrimitive(self.agent.num_unflagged_bombs, [], MyInt)
 
-        self.primitives.addPrimitive(Functions.move(self.agent), [], Move, "movepri")
-        self.primitives.addTerminal(self.agent.move, Move)
+
         # self.primitives.addTerminal(self.agent.flag, Func)
         # self.primitives.addTerminal(self.agent.unflag, Func)
         # self.primitives.addTerminal(self.agent.reveal, Func)
-        self.primitives.addTerminal(self.agent.do_stuff, Func)
-        self.primitives.addTerminal(self.agent.flag_all, Func)
-        self.primitives.addTerminal(self.agent.reveal_all, Func)
+        # self.primitives.addTerminal(self.)
 
-        for i in range(8):
-            self.primitives.addTerminal(i, MyInt)
-
-        self.primitives.addTerminal(False, bool)
-        self.primitives.addTerminal(True, bool)
+        # for i in range(8):
+        #     self.primitives.addTerminal(i, MyInt)
+        #
+        # self.primitives.addTerminal(False, bool)
+        # self.primitives.addTerminal(True, bool)
 
         self.primitives.renameArguments(ARG0="agent")
         creator.create("FitnessMin", base.Fitness, weights=(1.0,))
@@ -91,7 +97,7 @@ class GP(object):
         self.toolbox.register("population", tools.initRepeat, list, self.toolbox.individual)
         self.toolbox.register("compile", gp.compile, pset=self.primitives)
 
-        self.toolbox.register("evaluate", self.eval_all_boards, problems=self.generate_problems(self.numProblems))
+        self.toolbox.register("evaluate", self.eval_all_boards)  # , problems=self.generate_problems(self.numProblems))
         self.toolbox.register("select", tools.selTournament, tournsize=3)
         self.toolbox.register("mate", gp.cxOnePoint)  # TODO maybe error
         self.toolbox.register("expr_mut", gp.genFull, min_=0, max_=2)
@@ -119,7 +125,7 @@ class GP(object):
     def max_fitness_for_board(board_game, first):
         return board_game.n * board_game.m - board_game.bombs - first
 
-    def eval_all_boards(self, individual, problems):
+    def eval_all_boards(self, individual):
         func = self.toolbox.compile(expr=individual, pset=self.primitives)
         # solutions_boards = [func(problem) for problem in problems]
         total_fitness = 0  # sum of all solutions' fitness
@@ -178,10 +184,10 @@ class GP(object):
 
 
 if __name__ == "__main__":
-    board = (10, 10, 5)  # [N, M, k] NxM with k bombs
+    board = (10, 10, 2)  # [N, M, k] NxM with k bombs
     # (gens, pop_size, num_problems, tree_max_height, crossover_p, mutate_p)
     # option_1 = (151, 50000, 36, 5, 0.9, 0.0)  # like paper
-    option_1 = (5, 150, 10, 0.9, 0.0)
+    option_1 = (30, 10, 10, 0.9, 0.0)
     option_2 = (100, 1000, 100, 0.7, 0.1)
     option_3 = (100, 100, 20, 0.7, 0.1)
     option_4 = (100, 1000, 20, 0.7, 0.01)

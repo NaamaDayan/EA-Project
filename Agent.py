@@ -67,10 +67,11 @@ class Agent(object):
             self.moves += 1
 
     def if_all_safe(self):
-        return self.num_flags() == self.num_bombs()
+        return self.num_flags() == self.num_bombs() or self.num_bombs() == 0
 
     def if_all_bombs(self):
-        return self.num_hidden() == self.num_unflagged_bombs()
+        return self.num_hidden() != 0 and self.num_hidden() == self.num_unflagged_bombs()
+        # return self.num_hidden() == self.num_unflagged_bombs()
 
     def do_stuff(self):
         if self.if_all_bombs():
