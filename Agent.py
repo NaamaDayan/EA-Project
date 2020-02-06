@@ -15,15 +15,19 @@ class Agent(object):
         self.location = (0, 0)
         self.board.reset(board_num)
         self.moves = 0
-        self.first_reveal = 0
+        self.reveal()
+        self.first_reveal = self.board.num_revealed_cells()
 
     def move(self):
-        if self.get_interesting_cells().size() == 0:
-            loc = (int(self.board.n / 2), int(self.board.m / 2))
-            self.reveal()
-            self.first_reveal = self.board.num_revealed_cells()
-        else:
+        # if self.get_interesting_cells().size() == 0:
+        #     loc = (int(self.board.n / 2), int(self.board.m / 2))
+        #     self.reveal()
+        #     self.first_reveal = self.board.num_revealed_cells()
+        # else:
+        if self.get_interesting_cells().size() != 0:
             loc = self.get_interesting_cells().pop()
+        else:
+            loc = (int(self.board.n / 2), int(self.board.m / 2))
         if self.board.in_grid(*loc):
             self.location = loc
 
@@ -65,6 +69,12 @@ class Agent(object):
 
     def if_all_bombs(self):
         return self.num_hidden() == self.num_unflagged_bombs()
+
+    def do_stuff(self):
+        if self.if_all_bombs():
+            self.flag_all()
+        elif self.if_all_safe():
+            self.reveal_all()
 
     def get_interesting_cells(self):
         return self.board.interesting_cells

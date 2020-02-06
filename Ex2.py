@@ -69,6 +69,7 @@ class GP(object):
         # self.primitives.addTerminal(self.agent.flag, Func)
         # self.primitives.addTerminal(self.agent.unflag, Func)
         # self.primitives.addTerminal(self.agent.reveal, Func)
+        self.primitives.addTerminal(self.agent.do_stuff, Func)
         self.primitives.addTerminal(self.agent.flag_all, Func)
         self.primitives.addTerminal(self.agent.reveal_all, Func)
 
@@ -115,8 +116,8 @@ class GP(object):
         return score
 
     @staticmethod
-    def max_fitness_for_board(board_game):
-        return board_game.n * board_game.m - board_game.bombs
+    def max_fitness_for_board(board_game, first):
+        return board_game.n * board_game.m - board_game.bombs - first
 
     def eval_all_boards(self, individual, problems):
         func = self.toolbox.compile(expr=individual, pset=self.primitives)
@@ -129,7 +130,7 @@ class GP(object):
             agent = self.agent
             curr_fitness = GP.eval_board(agent, func, i)
             if curr_fitness != -1:  # not dummy
-                max_fitness += GP.max_fitness_for_board(agent.board)
+                max_fitness += GP.max_fitness_for_board(agent.board, agent.first_reveal)
                 total_fitness += curr_fitness
             else:
                 non_dumbs += 1
@@ -177,10 +178,10 @@ class GP(object):
 
 
 if __name__ == "__main__":
-    board = (6, 6, 8)  # [N, M, k] NxM with k bombs
+    board = (10, 10, 5)  # [N, M, k] NxM with k bombs
     # (gens, pop_size, num_problems, tree_max_height, crossover_p, mutate_p)
     # option_1 = (151, 50000, 36, 5, 0.9, 0.0)  # like paper
-    option_1 = (500, 500, 10, 0.9, 0.0)
+    option_1 = (5, 150, 10, 0.9, 0.0)
     option_2 = (100, 1000, 100, 0.7, 0.1)
     option_3 = (100, 100, 20, 0.7, 0.1)
     option_4 = (100, 1000, 20, 0.7, 0.01)

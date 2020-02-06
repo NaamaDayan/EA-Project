@@ -34,8 +34,9 @@ class Board(object):
 
     @staticmethod
     def random_grid(n, m, bombs, board_num):
-        tmp = np.array([0] * (n * m - bombs) + [1] * bombs)
+        tmp = np.array([0] * (n * m - bombs - 1) + [1] * bombs)
         random.Random(board_num).shuffle(tmp)
+        tmp = np.concatenate(([0], tmp))
         return tmp.reshape((n, m))
 
     def reveal(self, loc):
