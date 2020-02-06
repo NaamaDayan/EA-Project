@@ -32,10 +32,12 @@ class Agent(object):
             self.location = loc
 
     def reveal(self):
-        self.board.reveal(self.location)
+        if self.num_hidden() <= 8 - self.num_bombs():
+            self.board.reveal(self.location)
 
     def flag(self):
-        self.board.mark(self.location)
+        if self.num_flags() < self.num_bombs():
+            self.board.mark(self.location)
 
     def unflag(self):
         self.board.unmark(self.location)
