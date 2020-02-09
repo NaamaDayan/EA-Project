@@ -174,7 +174,7 @@ class Board(object):
                 cell = self.grid_at((i, j))
                 if cell.is_bomb() and cell.is_revealed():
                     return True
-        return False
+        return self.num_revealed_cells() == self.n * self.m - self.bombs
 
     def display(self):
         for i in range(self.n):
