@@ -51,7 +51,7 @@ class Board(object):
     def update_queue(self, loc):
         first = self.adj_revealed_flagged(loc)
         second = self.adj_bombs(loc)
-        priority = 1 / (2 * first + second)
+        priority = 1 / (1 + (2 * first + second))
         if self.adj_hidden(loc) != 0:
             self.interesting_cells.push((loc[0], loc[1]), priority)
 
