@@ -51,7 +51,7 @@ class Board(object):
     def update_queue(self, loc):
         first = self.adj_revealed_flagged(loc)
         second = self.adj_bombs(loc)
-        priority = 1 / (2 * first + second)
+        priority = 1 / (1 + (2 * first + second))
         if self.adj_hidden(loc) != 0:
             self.interesting_cells.push((loc[0], loc[1]), priority)
 
@@ -174,7 +174,7 @@ class Board(object):
                 cell = self.grid_at((i, j))
                 if cell.is_bomb() and cell.is_revealed():
                     return True
-        return False
+        return self.num_revealed_cells() == self.n * self.m - self.bombs
 
     def display(self):
         for i in range(self.n):
