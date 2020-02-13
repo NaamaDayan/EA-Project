@@ -52,7 +52,7 @@ class GP(object):
         self.primitives.addTerminal(self.agent.flag_all, Func)
         self.primitives.addTerminal(self.agent.reveal_all, Func)
 
-        # self.primitives.addTerminal(self.agent.do_stuff, Func)
+        self.primitives.addTerminal(self.agent.do_stuff, Func)
 
         # self.primitives.addPrimitive(Functions.if_then_else2, [bool, Func, Func], Func)  # maybe 3
         # self.primitives.addPrimitive(Functions.eq, [MyInt, MyInt], bool)
@@ -67,12 +67,10 @@ class GP(object):
         # self.primitives.addPrimitive(self.agent.move, [MyInt], Func)
         # self.primitives.addPrimitive(Functions.id, [MyInt], MyInt)
 
-
         # self.primitives.addPrimitive(self.agent.num_bombs, [], MyInt)
         # self.primitives.addPrimitive(self.agent.num_hidden, [], MyInt)
         # self.primitives.addPrimitive(self.agent.num_flags, [], MyInt)
         # self.primitives.addPrimitive(self.agent.num_unflagged_bombs, [], MyInt)
-
 
         # self.primitives.addTerminal(self.agent.flag, Func)
         # self.primitives.addTerminal(self.agent.unflag, Func)
@@ -135,11 +133,11 @@ class GP(object):
         for i in range(self.numProblems):
             agent = self.agent
             curr_fitness = GP.eval_board(agent, func, i)
-            if curr_fitness != -1:  # not dummy
-                max_fitness += GP.max_fitness_for_board(agent.board, agent.first_reveal)
-                total_fitness += curr_fitness
-            else:
-                non_dumbs += 1
+            # if curr_fitness != -1:  # not dummy
+            max_fitness += GP.max_fitness_for_board(agent.board, agent.first_reveal)
+            total_fitness += curr_fitness
+            # else:
+            #     non_du/mbs += 1
         std_score = max_fitness - total_fitness
 
         return 1 / (1 + std_score),

@@ -142,7 +142,7 @@ class Board(object):
         counter = 0
         for i in range(len(self.grid)):
             for j in range(len(self.grid[i])):
-                counter += int(self.grid[i][j].is_revealed() and not self.grid[i][j].is_bomb())
+                counter += int(self.grid[i][j].is_revealed())
         return counter
 
     # for fitness - returns number of bombs that were correctly identified
