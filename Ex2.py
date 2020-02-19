@@ -52,7 +52,7 @@ class GP(object):
         self.primitives.addTerminal(self.agent.flag_all, Func)
         self.primitives.addTerminal(self.agent.reveal_all, Func)
 
-        self.primitives.addTerminal(self.agent.do_stuff, Func)
+        # self.primitives.addTerminal(self.agent.do_stuff, Func)
 
         # self.primitives.addPrimitive(Functions.if_then_else2, [bool, Func, Func], Func)  # maybe 3
         # self.primitives.addPrimitive(Functions.eq, [MyInt, MyInt], bool)
@@ -136,6 +136,9 @@ class GP(object):
             # if curr_fitness != -1:  # not dummy
             max_fitness += GP.max_fitness_for_board(agent.board, agent.first_reveal)
             total_fitness += curr_fitness
+            if max_fitness == total_fitness:
+                agent.board.display()
+                agent.board.display_debug()
             # else:
             #     non_du/mbs += 1
         std_score = max_fitness - total_fitness
@@ -185,7 +188,7 @@ if __name__ == "__main__":
     board = (10, 10, 5)  # [N, M, k] NxM with k bombs
     # (gens, pop_size, num_problems, tree_max_height, crossover_p, mutate_p)
     # option_1 = (151, 50000, 36, 5, 0.9, 0.0)  # like paper
-    option_1 = (100, 100, 10, 0.9, 0.0)
+    option_1 = (15, 100, 10, 0.9, 0.0)
     option_2 = (100, 1000, 100, 0.7, 0.1)
     option_3 = (100, 100, 20, 0.7, 0.1)
     option_4 = (100, 1000, 20, 0.7, 0.01)
