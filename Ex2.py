@@ -214,7 +214,7 @@ if __name__ == "__main__":
         print(*options[curr])
         ex2 = GP(*options[curr])
         ex2.init_vars()
-        hof = ex2.fit()[0]
+        hof = ex2.fit()[2]
         test_score = ex2.test(hof, 500)
         print("First with", *options, "Got", test_score[0] * 100, "% with score of", test_score[1])
         ex2.plot(curr)
