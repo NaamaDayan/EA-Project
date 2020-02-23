@@ -134,11 +134,14 @@ class GP(object):
             agent = self.agent
             curr_fitness = GP.eval_board(agent, func, i)
             # if curr_fitness != -1:  # not dummy
-            max_fitness += GP.max_fitness_for_board(agent.board, agent.first_reveal)
+            max_fitness_tmp = GP.max_fitness_for_board(agent.board, agent.first_reveal)
             total_fitness += curr_fitness
-            if max_fitness == total_fitness:
-                agent.board.display()
-                agent.board.display_debug()
+            max_fitness += max_fitness_tmp
+            # if curr_fitness == max_fitness_tmp:
+            #     print(i, func)
+            #     agent.board.display()
+            #     print()
+            #     agent.board.display_debug()
             # else:
             #     non_du/mbs += 1
         std_score = max_fitness - total_fitness
@@ -183,6 +186,19 @@ class GP(object):
 
         return ret_pop, self.log, hof
 
+    def test(self, func, size):
+        counter, max_score, total_score = 0, 0, 0
+        for i in range(self.numProblems, self.numProblems + size):
+            agent = self.agent
+            curr_score = GP.eval_board(agent, func, i)
+            curr_max = GP.max_fitness_for_board(agent.board, agent.first_reveal)
+            if agent.board.finished() and not agent.board.lost_game():
+                counter += 1
+            max_score += curr_max
+            total_score += curr_score
+        std_score = max_score - total_score
+        return (counter * 1.0) / size, 1 / (1 + std_score)
+
 
 if __name__ == "__main__":
     board = (10, 10, 5)  # [N, M, k] NxM with k bombs
@@ -198,7 +214,9 @@ if __name__ == "__main__":
         print(*options[curr])
         ex2 = GP(*options[curr])
         ex2.init_vars()
-        ex2.fit()
+        hof = ex2.fit()[0]
+        test_score = ex2.test(hof, 500)
+        print("First with", *options, "Got", test_score[0] * 100, "% with score of", test_score[1])
         ex2.plot(curr)
     # board = Board(5, 2)
     # board.print_board()
