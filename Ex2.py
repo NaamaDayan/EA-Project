@@ -184,7 +184,7 @@ class GP(object):
         ag.run(self.final_func, 999)
         ag.display()
 
-        return ret_pop, self.log, hof
+        return ret_pop, self.log, hof, self.final_func
 
     def test(self, func, size):
         counter, max_score, total_score = 0, 0, 0
@@ -214,7 +214,7 @@ if __name__ == "__main__":
         print(*options[curr])
         ex2 = GP(*options[curr])
         ex2.init_vars()
-        hof = ex2.fit()[2][0]
+        hof = ex2.fit()[3]
         test_score = ex2.test(hof, 500)
         print("First with", *options, "Got", test_score[0] * 100, "% with score of", test_score[1])
         ex2.plot(curr)
