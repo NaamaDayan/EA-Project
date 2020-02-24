@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import operator
 import random
 import numpy as np
+import time
 from deap import algorithms
 from deap import base
 from deap import creator
@@ -204,7 +205,7 @@ if __name__ == "__main__":
     board = (10, 10, 5)  # [N, M, k] NxM with k bombs
     # (gens, pop_size, num_problems, tree_max_height, crossover_p, mutate_p)
     # option_1 = (151, 50000, 36, 5, 0.9, 0.0)  # like paper
-    option_1 = (15, 100, 10, 0.9, 0.0)
+    option_1 = (100, 100, 10, 0.9, 0.0)
     option_2 = (100, 1000, 100, 0.7, 0.1)
     option_3 = (100, 100, 20, 0.7, 0.1)
     option_4 = (100, 1000, 20, 0.7, 0.01)
@@ -214,8 +215,14 @@ if __name__ == "__main__":
         print(*options[curr])
         ex2 = GP(*options[curr])
         ex2.init_vars()
+        start_time = time.clock()
         hof = ex2.fit()[3]
+        end_time = time.clock()
+        overall_time = end_time - start_time
+        print("Time: " + overall_time)
+        print("testing...")
         test_score = ex2.test(hof, 500)
+        print("done testing")
         print("First with", *options, "Got", test_score[0] * 100, "% with score of", test_score[1])
         ex2.plot(curr)
     # board = Board(5, 2)
