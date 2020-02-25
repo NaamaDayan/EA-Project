@@ -215,11 +215,11 @@ if __name__ == "__main__":
         print(*options[curr])
         ex2 = GP(*options[curr])
         ex2.init_vars()
-        start_time = time.clock()
+        start_time = time.time()
         hof = ex2.fit()[3]
-        end_time = time.clock()
+        end_time = time.time()
         overall_time = end_time - start_time
-        print("Time: " + overall_time)
+        print("Time: ", overall_time)
         print("testing...")
         test_score = ex2.test(hof, 500)
         print("done testing")
