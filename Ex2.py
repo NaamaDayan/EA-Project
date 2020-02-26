@@ -202,7 +202,7 @@ class GP(object):
 
 
 if __name__ == "__main__":
-    board = (10, 10, 5)  # [N, M, k] NxM with k bombs
+    board = (10, 10, 10)  # [N, M, k] NxM with k bombs
     # (gens, pop_size, num_problems, tree_max_height, crossover_p, mutate_p)
     # option_1 = (151, 50000, 36, 5, 0.9, 0.0)  # like paper
     option_1 = (100, 100, 10, 0.9, 0.0)
@@ -219,10 +219,10 @@ if __name__ == "__main__":
         hof = ex2.fit()[3]
         end_time = time.time()
         overall_time = end_time - start_time
-        print("Time: ", overall_time)
         test_score = ex2.test(hof, 500)
         print("First with", *options[curr], "Got", test_score[0] * 100, "% with score of", test_score[1])
         ex2.plot(curr)
+        print("Time in seconds: ", overall_time, ", time in hours: ", overall_time / 3600)
     # board = Board(5, 2)
     # board.print_board()
     # board.expand_cells(3, 2)
