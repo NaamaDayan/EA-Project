@@ -220,10 +220,8 @@ if __name__ == "__main__":
         end_time = time.time()
         overall_time = end_time - start_time
         print("Time: ", overall_time)
-        print("testing...")
         test_score = ex2.test(hof, 500)
-        print("done testing")
-        print("First with", *options, "Got", test_score[0] * 100, "% with score of", test_score[1])
+        print("First with", *options[curr], "Got", test_score[0] * 100, "% with score of", test_score[1])
         ex2.plot(curr)
     # board = Board(5, 2)
     # board.print_board()
