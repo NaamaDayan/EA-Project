@@ -163,7 +163,6 @@ class GP(object):
         plt.show()
 
     def fit(self):
-        random.seed(318)
         pop = self.toolbox.population(n=self.popSize)
         hof = tools.HallOfFame(1)
 
@@ -212,6 +211,7 @@ if __name__ == "__main__":
     options = [option_1, option_2, option_3, option_4]
     options = list(map(lambda x: board + x, options))
     for curr in [0]:  # range(len(options)):
+        # random.seed(318)
         print(*options[curr])
         ex2 = GP(*options[curr])
         ex2.init_vars()
@@ -222,7 +222,7 @@ if __name__ == "__main__":
         test_score = ex2.test(hof, 500)
         print("First with", *options[curr], "Got", test_score[0] * 100, "% with score of", test_score[1])
         ex2.plot(curr)
-        print("Time in seconds: ", overall_time, ", time in hours: ", overall_time / 3600)
+        print("Time in seconds: ", round(overall_time, 2), ", time in hours: ", round(overall_time / 3600, 2))
     # board = Board(5, 2)
     # board.print_board()
     # board.expand_cells(3, 2)
