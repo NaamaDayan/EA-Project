@@ -201,7 +201,7 @@ class GP(object):
 
 
 if __name__ == "__main__":
-    board = (10, 10, 2)  # [N, M, k] NxM with k bombs
+    board = (10, 10, 5)  # [N, M, k] NxM with k bombs
     # (gens, pop_size, num_problems, tree_max_height, crossover_p, mutate_p)
     # option_1 = (151, 50000, 36, 5, 0.9, 0.0)  # like paper
     option_1 = (100, 100, 10, 0.9, 0.0)
